@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { db } from "@/firebase";
 import { collection, addDoc } from "firebase/firestore";
+
 export interface CartItem {
   id: number;
   name: string;
@@ -10,10 +11,9 @@ export interface CartItem {
   category: string;
   image?: string;
 }
-
-export interface Order {
+interface Order {
   id: string;
-  items: CartItem[];
+  items: any[]; // Replace with your actual item type
   customer: {
     firstName: string;
     lastName: string;
@@ -28,10 +28,10 @@ export interface Order {
   subtotal: number;
   tax: number;
   total: number;
-  status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered';
+  status: string;
   createdAt: string;
+  customerId?: string; // Added customerId as optional
 }
-
 interface CartState {
   items: CartItem[];
   lastOrder: Order | null;
@@ -199,15 +199,35 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   //   return order;
   // };
+ 
   const createOrder = async (
     customer: Order['customer'],
     paymentMethod: string
   ): Promise<Order> => {
     const orderId = `ORD-${Date.now()}`;
-    const subtotal = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const subtotal = state.items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
     const tax = subtotal * 0.15;
     const total = subtotal + tax;
   
+    let customerId: string | null = null;
+  
+    // Step 1: Save customer to Firestore
+    try {
+      const customerDocRef = await addDoc(collection(db, "customers"), {
+        ...customer,
+        createdAt: new Date().toISOString(),
+      });
+      customerId = customerDocRef.id;
+      console.log("Customer saved to Firebase with ID:", customerId);
+    } catch (error) {
+      console.error("Error saving customer to Firebase:", error);
+      throw new Error("Failed to save customer");
+    }
+  
+    // Step 2: Create order object with customerId added
     const order: Order = {
       id: orderId,
       items: [...state.items],
@@ -216,29 +236,40 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       subtotal,
       tax,
       total,
-      status: paymentMethod === 'cash' ? 'confirmed' : 'pending',
+      status: paymentMethod === "cash" ? "confirmed" : "pending",
       createdAt: new Date().toISOString(),
+      customerId: customerId || undefined,
     };
   
-    dispatch({ type: 'SET_LAST_ORDER', payload: order });
-    dispatch({ type: 'CLEAR_CART' });
+    // Dispatch order and clear cart
+    dispatch({ type: "SET_LAST_ORDER", payload: order });
+    dispatch({ type: "CLEAR_CART" });
   
-    // Save to localStorage
-    const savedOrders = localStorage.getItem('orders');
-    const orders = savedOrders ? JSON.parse(savedOrders) : [];
-    orders.push(order);
-    localStorage.setItem('orders', JSON.stringify(orders));
-  
-    // ✅ Save order to Firestore
+    // Save order to localStorage
     try {
-      await addDoc(collection(db, "orders"), order);
+      const savedOrders = localStorage.getItem("orders");
+      const orders = savedOrders ? JSON.parse(savedOrders) : [];
+      orders.push(order);
+      localStorage.setItem("orders", JSON.stringify(orders));
+    } catch (error) {
+      console.error("Error saving order to localStorage:", error);
+    }
+  
+    // Save order to Firestore
+    try {
+      await addDoc(collection(db, "orders"), {
+        ...order,
+        customerId,
+      });
       console.log("Order saved to Firebase");
     } catch (error) {
       console.error("Error saving order to Firebase:", error);
+      throw new Error("Failed to save order");
     }
   
     return order;
   };
+  
   const itemCount = state.items.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const tax = subtotal * 0.15;
