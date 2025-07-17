@@ -35,6 +35,7 @@ const AdminOrders = () => {
           id: doc.id,
           ...doc.data(),
         }));
+        console.log(ordersData)
         setOrders(ordersData);
       } catch (error) {
         console.error("Error fetching orders:", error);
