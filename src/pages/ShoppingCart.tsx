@@ -73,7 +73,9 @@ const ShoppingCart = () => {
                         </div>
                         <div className="flex-1">
                           <h4 className="font-semibold">{item.name}</h4>
-                          <p className="text-sm text-muted-foreground">R{item.price.toFixed(2)} each</p>
+                          <p className="text-sm text-muted-foreground">R{item.price} each</p>
+                                                    {/* <p className="text-sm text-muted-foreground">R{item.price.toFixed(2)} each</p> */}
+
                         </div>
                         <div className="flex items-center space-x-2">
                           <Button
@@ -99,7 +101,9 @@ const ShoppingCart = () => {
                           </Button>
                         </div>
                         <div className="text-right">
-                          <div className="font-semibold">R{(item.price * item.quantity).toFixed(2)}</div>
+                          <div className="font-semibold">R{(item.price * item.quantity)}</div>
+                          {/* <div className="font-semibold">R{(item.price * item.quantity).toFixed(2)}</div> */}
+
                           <Button
                             variant="ghost"
                             size="sm"

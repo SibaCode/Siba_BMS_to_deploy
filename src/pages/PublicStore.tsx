@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCart } from "@/contexts/CartContext";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/firebase";  // Your Firebase config file path
+
+useEffect
 import { 
   Search, 
   ShoppingCart, 
@@ -14,13 +18,34 @@ import {
   Filter
 } from "lucide-react";
 
+
 const PublicStore = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const { addItem, itemCount } = useCart();
 
+
+  const [products, setProducts] = useState<any[]>([]);
+  useEffect(() => {
+    async function fetchProducts() {
+      try {
+        const productsCol = collection(db, "products");  
+        const productsSnapshot = await getDocs(productsCol);
+        const productsList = productsSnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setProducts(productsList);
+        console.log(products)
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      }
+    }
+    fetchProducts();
+  }, []);
+  
   // Mock data - in real app this would come from backend
-  const products = [
+  const izinto = [
     {
       id: 1,
       name: "Premium Apron",
@@ -82,25 +107,47 @@ const PublicStore = () => {
       stock: 6
     }
   ];
-
+ 
   const categories = ["all", "Aprons", "Mugs", "Umbrellas"];
 
+  const filteredizinto = izinto.filter(siba => {
+    const matchesSearch = siba.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = categoryFilter === "all" || siba.category === categoryFilter;
+    return matchesSearch && matchesCategory;
+  });
   const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = product.name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === "all" || product.category === categoryFilter;
     return matchesSearch && matchesCategory;
   });
-
-  const handleAddToCart = (product: any) => {
+  const handleAddToCartSiba = (siba: any) => {
     addItem({
-      id: product.id,
-      name: product.name,
-      price: product.price,
-      category: product.category,
-      image: product.image
+      id: siba.id,
+      name: siba.name,
+      price: siba.price,
+      category: siba.category,
+      image: siba.image
     });
   };
-
+  const handleAddToCart = (product, variant) => {
+    // console.log("Adding to cart:", {
+    //   // id: variant.id || product.productID, // fallback if variant has no id
+    //   // name: `${product.name} - ${variant.size} ${variant.color}`,
+    //   // price: parseFloat(variant.sellingPrice),
+    //   // category: product.category,
+    //   // image: variant.images?.[0] || product.productImage || "",
+    // });
+  
+    addItem({
+      id: variant.id || product.productID,
+      name: `${product.name} - ${variant.size} ${variant.color}`,
+      price: parseFloat(variant.sellingPrice),
+      category: product.category,
+      image: variant.images?.[0] || product.productImage || "",
+    });
+  };
+  
+  
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -142,7 +189,7 @@ const PublicStore = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search products..."
+                placeholder="Search izinto..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -164,8 +211,15 @@ const PublicStore = () => {
         </div>
       </div>
 
-      {/* Products Grid */}
+      {/* izinto Grid */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="flex justify-between items-center mb-8">
+          <h3 className="text-2xl font-bold">Our izinto</h3>
+          <p className="text-muted-foreground">
+            Showing {filteredizinto.length} of {izinto.length} izinto
+          </p>
+        </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex justify-between items-center mb-8">
           <h3 className="text-2xl font-bold">Our Products</h3>
           <p className="text-muted-foreground">
@@ -173,14 +227,30 @@ const PublicStore = () => {
           </p>
         </div>
 
+        {/* {filteredProducts.map((product) => (
+            <Card key={product.productID} className="hover:shadow-lg transition-shadow">
+              <CardHeader className="pb-3">
+                <div className="aspect-square bg-muted rounded-lg mb-3 flex items-center justify-center">
+                {product.variants?.[0]?.images? (
+                  <img
+                    src={product.variants?.[0]?.images}
+                    alt={product.name}
+                    className="object-cover w-full h-full"
+                  />
+                ) : (<Package className="h-12 w-12 text-muted-foreground" /> )}
+                </div> */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredProducts.map((product) => (
-            <Card key={product.id} className="hover:shadow-lg transition-shadow group">
+            <Card key={product.productID} className="hover:shadow-lg transition-shadow group">
               <CardHeader className="pb-4">
-                <div className="aspect-square bg-muted rounded-lg mb-4 flex items-center justify-center overflow-hidden">
-                  <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
-                    <Store className="h-16 w-16 text-primary/50" />
-                  </div>
+              <div className="aspect-square bg-muted rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+                  {product.productImage ? (
+                    <img src={product.productImage} alt={product.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                      <Store className="h-16 w-16 text-primary/50" />
+                    </div>
+                  )}
                 </div>
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
@@ -188,31 +258,32 @@ const PublicStore = () => {
                     <Badge variant="secondary" className="mb-2">{product.category}</Badge>
                   </div>
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-primary">R{product.price}</div>
+                    <div className="text-2xl font-bold text-primary">R{product.variants?.[0]?.sellingPrice }</div>
                     <div className="text-sm text-muted-foreground">
-                      {product.inStock ? `${product.stock} in stock` : "Out of stock"}
+                      {product.status}
                     </div>
                   </div>
                 </div>
               </CardHeader>
               <CardContent>
                 <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                  {product.description}
+                 Available in variety of colours
                 </p>
-                <Button 
-                  className="w-full" 
-                  disabled={!product.inStock}
-                  onClick={() => handleAddToCart(product)}
-                >
-                  {product.inStock ? (
-                    <>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add to Cart
-                    </>
-                  ) : (
-                    "Out of Stock"
-                  )}
-                </Button>
+                <Button
+              className="w-full"
+              disabled={product.status !== "In stock"}
+              onClick={() => handleAddToCart(product ,product.variants[0])}
+            >
+              {product.status === "In stock" ? (
+                <>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add to Cart
+                </>
+              ) : (
+                "Out of Stock"
+              )}
+            </Button>
+
               </CardContent>
             </Card>
           ))}
@@ -234,12 +305,73 @@ const PublicStore = () => {
         )}
       </div>
 
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredizinto.map((siba) => (
+            <Card key={siba.id} className="hover:shadow-lg transition-shadow group">
+              <CardHeader className="pb-4">
+                <div className="aspect-square bg-muted rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+                  <div className="w-full h-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center">
+                    <Store className="h-16 w-16 text-primary/50" />
+                  </div>
+                </div>
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <CardTitle className="text-lg mb-1">{siba.name}</CardTitle>
+                    <Badge variant="secondary" className="mb-2">{siba.category}</Badge>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-primary">R{siba.price}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {siba.inStock ? `${siba.stock} in stock` : "Out of stock"}
+                    </div>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                  {siba.description}
+                </p>
+                <Button 
+                  className="w-full" 
+                  disabled={!siba.inStock}
+                  onClick={() => handleAddToCartSiba(siba)}
+                >
+                  {siba.inStock ? (
+                    <>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add to Cart
+                    </>
+                  ) : (
+                    "Out of Stock"
+                  )}
+                </Button>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {filteredizinto.length === 0 && (
+          <Card className="py-12">
+            <CardContent className="text-center">
+              <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No izinto found</h3>
+              <p className="text-muted-foreground">
+                {searchTerm || categoryFilter !== "all" 
+                  ? "Try adjusting your search or filter criteria"
+                  : "No izinto available at the moment"
+                }
+              </p>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
       {/* Footer */}
       <footer className="border-t bg-muted/30 mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center text-muted-foreground">
             <p>&copy; 2024 Your Store. All rights reserved.</p>
-            <p className="mt-2">Premium quality products with excellent customer service</p>
+            <p className="mt-2">Premium quality izinto with excellent customer service</p>
           </div>
         </div>
       </footer>
