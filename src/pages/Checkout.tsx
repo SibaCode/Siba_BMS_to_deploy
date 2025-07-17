@@ -78,7 +78,7 @@ const Checkout = () => {
 
     try {
       // Create the order
-      const order = createOrder(
+      const order = await createOrder(
         {
           firstName: data.firstName,
           lastName: data.lastName,

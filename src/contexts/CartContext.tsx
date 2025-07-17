@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-
+import { db } from "@/firebase";
+import { collection, addDoc } from "firebase/firestore";
 export interface CartItem {
   id: number;
   name: string;
@@ -110,7 +111,9 @@ interface CartContextType {
   removeItem: (id: number) => void;
   updateQuantity: (id: number, quantity: number) => void;
   clearCart: () => void;
-  createOrder: (customer: Order['customer'], paymentMethod: string) => Order;
+  // createOrder: (customer: Order['customer'], paymentMethod: string) => Order;
+  createOrder: (customer: Order['customer'], paymentMethod: string) => Promise<Order>;
+
   itemCount: number;
   subtotal: number;
   tax: number;
@@ -167,12 +170,44 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     dispatch({ type: 'CLEAR_CART' });
   };
 
-  const createOrder = (customer: Order['customer'], paymentMethod: string): Order => {
+  // const createOrder = (customer: Order['customer'], paymentMethod: string): Order => {
+  //   const orderId = `ORD-${Date.now()}`;
+  //   const subtotal = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  //   const tax = subtotal * 0.15; // 15% tax
+  //   const total = subtotal + tax;
+
+  //   const order: Order = {
+  //     id: orderId,
+  //     items: [...state.items],
+  //     customer,
+  //     paymentMethod,
+  //     subtotal,
+  //     tax,
+  //     total,
+  //     status: paymentMethod === 'cash' ? 'confirmed' : 'pending',
+  //     createdAt: new Date().toISOString(),
+  //   };
+
+  //   dispatch({ type: 'SET_LAST_ORDER', payload: order });
+  //   dispatch({ type: 'CLEAR_CART' });
+
+  //   // Save order to localStorage for persistence
+  //   const savedOrders = localStorage.getItem('orders');
+  //   const orders = savedOrders ? JSON.parse(savedOrders) : [];
+  //   orders.push(order);
+  //   localStorage.setItem('orders', JSON.stringify(orders));
+
+  //   return order;
+  // };
+  const createOrder = async (
+    customer: Order['customer'],
+    paymentMethod: string
+  ): Promise<Order> => {
     const orderId = `ORD-${Date.now()}`;
     const subtotal = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-    const tax = subtotal * 0.15; // 15% tax
+    const tax = subtotal * 0.15;
     const total = subtotal + tax;
-
+  
     const order: Order = {
       id: orderId,
       items: [...state.items],
@@ -184,19 +219,26 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       status: paymentMethod === 'cash' ? 'confirmed' : 'pending',
       createdAt: new Date().toISOString(),
     };
-
+  
     dispatch({ type: 'SET_LAST_ORDER', payload: order });
     dispatch({ type: 'CLEAR_CART' });
-
-    // Save order to localStorage for persistence
+  
+    // Save to localStorage
     const savedOrders = localStorage.getItem('orders');
     const orders = savedOrders ? JSON.parse(savedOrders) : [];
     orders.push(order);
     localStorage.setItem('orders', JSON.stringify(orders));
-
+  
+    // ✅ Save order to Firestore
+    try {
+      await addDoc(collection(db, "orders"), order);
+      console.log("Order saved to Firebase");
+    } catch (error) {
+      console.error("Error saving order to Firebase:", error);
+    }
+  
     return order;
   };
-
   const itemCount = state.items.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const tax = subtotal * 0.15;
