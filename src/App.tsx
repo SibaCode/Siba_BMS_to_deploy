@@ -16,6 +16,7 @@ import PublicStore from "./pages/PublicStore";
 import ShoppingCart from "./pages/ShoppingCart";
 import Checkout from "./pages/Checkout";
 import OrderSuccess from "./pages/OrderSuccess";
+import ProductDetailsPage from "./pages/ProductDetailsPage"; // or wherever you saved the file
 
 const queryClient = new QueryClient();
 
@@ -37,6 +38,8 @@ const App = () => (
             <Route path="/store/cart" element={<ShoppingCart />} />
             <Route path="/store/checkout" element={<Checkout />} />
             <Route path="/store/success" element={<OrderSuccess />} />
+            <Route path="/products/:id" element={<ProductDetailsPage />} />
+
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

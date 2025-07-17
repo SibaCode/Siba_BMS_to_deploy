@@ -9,6 +9,7 @@ import { useCart } from "@/contexts/CartContext";
 import { collection, getDocs } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { db } from "@/firebase"; 
+import { useNavigate } from "react-router-dom";
 
 useEffect
 import { 
@@ -38,6 +39,7 @@ const PublicStore = () => {
           ...doc.data(),
         }));
         setProducts(productsList);
+        console.log(productsList)
       } catch (error) {
         console.error("Error fetching products:", error);
       }
@@ -83,6 +85,12 @@ const PublicStore = () => {
       );
     };
 
+    const navigate = useNavigate();
+    
+    const handleProductClick = (id) => {
+      navigate(`/products/${id}`);
+    };
+    
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -182,24 +190,10 @@ const PublicStore = () => {
                 <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
                  Available in variety of colours
                 </p>
-                <Button
-                  className="w-full flex justify-between items-center"
-                  disabled={!isProductInStock(product)}
-                  onClick={() => handleAddToCart(product ,product.variants[0])}
-                >
-                  {isProductInStock(product) ? (
-                    <>
-                      <span className="flex items-center">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add to Cart
-                      </span>
-                      {/* <span className="text-xs text-gray-200">{totalStock(product)} in stock</span> */}
-                    </>
-                  ) : (
-                    <span className="w-full text-center">Out of Stock</span>
-                  )}
-                </Button>
 
+                <Button onClick={() => handleProductClick(product.id)}>
+                  View Product 
+                </Button>
 
 
               </CardContent>
