@@ -26,7 +26,6 @@ interface Order {
   };
   paymentMethod: string;
   subtotal: number;
-  tax: number;
   total: number;
   status: string;
   createdAt: string;
@@ -116,7 +115,6 @@ interface CartContextType {
 
   itemCount: number;
   subtotal: number;
-  tax: number;
   total: number;
 }
 
@@ -170,35 +168,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     dispatch({ type: 'CLEAR_CART' });
   };
 
-  // const createOrder = (customer: Order['customer'], paymentMethod: string): Order => {
-  //   const orderId = `ORD-${Date.now()}`;
-  //   const subtotal = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  //   const tax = subtotal * 0.15; // 15% tax
-  //   const total = subtotal + tax;
-
-  //   const order: Order = {
-  //     id: orderId,
-  //     items: [...state.items],
-  //     customer,
-  //     paymentMethod,
-  //     subtotal,
-  //     tax,
-  //     total,
-  //     status: paymentMethod === 'cash' ? 'confirmed' : 'pending',
-  //     createdAt: new Date().toISOString(),
-  //   };
-
-  //   dispatch({ type: 'SET_LAST_ORDER', payload: order });
-  //   dispatch({ type: 'CLEAR_CART' });
-
-  //   // Save order to localStorage for persistence
-  //   const savedOrders = localStorage.getItem('orders');
-  //   const orders = savedOrders ? JSON.parse(savedOrders) : [];
-  //   orders.push(order);
-  //   localStorage.setItem('orders', JSON.stringify(orders));
-
-  //   return order;
-  // };
+ 
  
   const createOrder = async (
     customer: Order['customer'],
@@ -209,8 +179,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       (sum, item) => sum + item.price * item.quantity,
       0
     );
-    const tax = subtotal * 0.15;
-    const total = subtotal + tax;
+    const total = subtotal;
   
     let customerId: string | null = null;
   
@@ -234,7 +203,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       customer,
       paymentMethod,
       subtotal,
-      tax,
       total,
       status: paymentMethod === "cash" ? "confirmed" : "pending",
       createdAt: new Date().toISOString(),
@@ -272,8 +240,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   const itemCount = state.items.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = state.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const tax = subtotal * 0.15;
-  const total = subtotal + tax;
+  const total = subtotal;
 
   return (
     <CartContext.Provider
@@ -287,7 +254,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         createOrder,
         itemCount,
         subtotal,
-        tax,
         total,
       }}
     >

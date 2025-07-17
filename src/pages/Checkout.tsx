@@ -37,7 +37,7 @@ interface CheckoutFormData {
 }
 
 const Checkout = () => {
-  const { items, subtotal, tax, total, createOrder } = useCart();
+  const { items, subtotal,total, createOrder } = useCart();
   const { toast } = useToast();
   const navigate = useNavigate();
   const [paymentMethod, setPaymentMethod] = useState("yoco");
@@ -328,10 +328,6 @@ const Checkout = () => {
                     <div className="flex justify-between">
                       <span>Subtotal</span>
                       <span>R{subtotal.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Tax (15%)</span>
-                      <span>R{tax.toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Shipping</span>

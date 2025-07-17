@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 const ShoppingCart = () => {
-  const { items, updateQuantity, removeItem, subtotal, tax, total, itemCount } = useCart();
+  const { items, updateQuantity, removeItem, total, itemCount } = useCart();
 
   return (
     <div className="min-h-screen bg-background">
@@ -74,7 +74,6 @@ const ShoppingCart = () => {
                         <div className="flex-1">
                           <h4 className="font-semibold">{item.name}</h4>
                           <p className="text-sm text-muted-foreground">R{item.price} each</p>
-                                                    {/* <p className="text-sm text-muted-foreground">R{item.price.toFixed(2)} each</p> */}
 
                         </div>
                         <div className="flex items-center space-x-2">
@@ -102,7 +101,6 @@ const ShoppingCart = () => {
                         </div>
                         <div className="text-right">
                           <div className="font-semibold">R{(item.price * item.quantity)}</div>
-                          {/* <div className="font-semibold">R{(item.price * item.quantity).toFixed(2)}</div> */}
 
                           <Button
                             variant="ghost"
@@ -128,17 +126,10 @@ const ShoppingCart = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    <div className="flex justify-between">
-                      <span>Subtotal ({itemCount} items)</span>
-                      <span>R{subtotal.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Tax (15%)</span>
-                      <span>R{tax.toFixed(2)}</span>
-                    </div>
+                    
                     <Separator />
                     <div className="flex justify-between text-lg font-bold">
-                      <span>Total</span>
+                      <span>Total ({itemCount} items)</span>
                       <span>R{total.toFixed(2)}</span>
                     </div>
                     <Button className="w-full mt-6" asChild disabled={items.length === 0}>
