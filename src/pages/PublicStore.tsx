@@ -99,12 +99,12 @@ const PublicStore = () => {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-4">
               <Store className="h-8 w-8 text-primary" />
-              <h1 className="text-2xl font-bold text-foreground">Your Store</h1>
+              <h1 className="text-2xl font-bold text-foreground">Sibahle Accessories</h1>
             </div>
             <div className="flex items-center space-x-4">
-              <Button variant="outline" asChild>
+              {/* <Button variant="outline" asChild>
                 <Link to="/admin">Admin Panel</Link>
-              </Button>
+              </Button> */}
               <Button asChild className="relative">
                 <Link to="/store/cart">
                   <ShoppingCart className="h-4 w-4 mr-2" />
@@ -124,7 +124,7 @@ const PublicStore = () => {
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-primary/10 to-primary/5 py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-4xl font-bold mb-4">Welcome to Our Store</h2>
+          <h2 className="text-4xl font-bold mb-4">Welcome to Sibahle Accessories</h2>
           <p className="text-xl text-muted-foreground mb-8">
             Discover premium aprons, mugs, and umbrellas for every occasion
           </p>
@@ -221,11 +221,14 @@ const PublicStore = () => {
       <footer className="border-t bg-muted/30 mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center text-muted-foreground">
-            <p>&copy; 2024 Your Store. All rights reserved.</p>
+            <p>&copy; 2025 - Sibahle Accessories. All rights reserved.</p>
             <p className="mt-2">Premium quality products with excellent customer service</p>
           </div>
         </div>
       </footer>
+      <Button variant="outline" asChild>
+                <Link to="/admin">Admin Panel</Link>
+              </Button>
     </div>
   );
 };
