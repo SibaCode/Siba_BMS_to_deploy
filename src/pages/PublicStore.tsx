@@ -146,8 +146,18 @@ const PublicStore = () => {
       image: variant.images?.[0] || product.productImage || "",
     });
   };
-  
-  
+
+    const isProductInStock = (product) => {
+      return product.variants?.some((variant) => variant.stockQuantity > 0);
+    };
+
+    const totalStock = (product) => {
+      return product.variants?.reduce(
+        (sum, variant) => sum + (variant.stockQuantity || 0),
+        0
+      );
+    };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -259,9 +269,7 @@ const PublicStore = () => {
                   </div>
                   <div className="text-right">
                     <div className="text-2xl font-bold text-primary">R{product.variants?.[0]?.sellingPrice }</div>
-                    <div className="text-sm text-muted-foreground">
-                      {product.status}
-                    </div>
+                   
                   </div>
                 </div>
               </CardHeader>
@@ -270,19 +278,24 @@ const PublicStore = () => {
                  Available in variety of colours
                 </p>
                 <Button
-              className="w-full"
-              disabled={product.status !== "In stock"}
-              onClick={() => handleAddToCart(product ,product.variants[0])}
-            >
-              {product.status === "In stock" ? (
-                <>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add to Cart
-                </>
-              ) : (
-                "Out of Stock"
-              )}
-            </Button>
+                  className="w-full flex justify-between items-center"
+                  disabled={!isProductInStock(product)}
+                  onClick={() => handleAddToCart(product ,product.variants[0])}
+                >
+                  {isProductInStock(product) ? (
+                    <>
+                      <span className="flex items-center">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add to Cart
+                      </span>
+                      {/* <span className="text-xs text-gray-200">{totalStock(product)} in stock</span> */}
+                    </>
+                  ) : (
+                    <span className="w-full text-center">Out of Stock</span>
+                  )}
+                </Button>
+
+
 
               </CardContent>
             </Card>

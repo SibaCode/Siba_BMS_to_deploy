@@ -400,9 +400,23 @@ const AdminInventory = () => {
   };
   
   const lowStockCount = products.filter((p) => p.stock < 5).length;
+  const isProductInStock = (product) => {
+    return product.variants?.some((variant) => variant.stockQuantity > 0);
+  };
 
-
-
+  const totalStock = (product) => {
+    return product.variants?.reduce(
+      (sum, variant) => sum + (variant.stockQuantity || 0),
+      0
+    );
+    if (!product.variants || !Array.isArray(product.variants)) {
+      return 0;
+    }
+    return product.variants.reduce(
+      (sum, variant) => sum + (Number(variant.stockQuantity) || 0),
+      0
+    );
+  };
 
 
 
@@ -625,6 +639,7 @@ const AdminInventory = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        
           <Card>
             <CardContent className="p-4">
               <div className="text-2xl font-bold">{izinto.length}</div>
@@ -651,6 +666,26 @@ const AdminInventory = () => {
             </CardContent>
           </Card>
         </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+  {products.map((product) => {
+    const totalVariants = product.variants?.length || 0;
+    const totalStock = product.variants?.reduce(
+      (sum, variant) => sum + (variant.stockQuantity || 0),
+      0
+    );
+
+    return (
+      <Card key={product.productID}>
+        <CardContent className="p-4">
+          <CardTitle>{product.name}</CardTitle>
+          <div className="text-sm text-muted-foreground">{product.category}</div>
+          <div className="mt-2 text-lg font-bold">{totalVariants} variants</div>
+          <div className="text-sm">Total Stock: {totalStock}</div>
+        </CardContent>
+      </Card>
+    );
+  })}
+</div>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <Card>
             <CardContent className="p-4">
@@ -722,34 +757,36 @@ const AdminInventory = () => {
               <CardTitle className="text-lg">{product.name}</CardTitle>
               <div className="flex items-center justify-between">
                 <Badge variant="secondary">{product.category}</Badge>
-                <Badge variant={product.stock < 5 ? "destructive" : "default"}>
-                  {product.stock < 5 && <AlertTriangle className="h-3 w-3 mr-1" />}
-                  {product.stock} in stock
+                <Badge variant="default">
+                {totalStock(product)} in stock
                 </Badge>
               </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Price:</span>
+                  <span className="text-muted-foreground">Stock price:</span>
                   <span className="font-semibold">R {product.variants?.[0]?.stockPrice}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Type:</span>
-                  <span> {product.variants?.[0]?.type}</span>
+                  <span className="text-muted-foreground">Selling price:</span>
+                  <span className="font-semibold">R {product.variants?.[0]?.sellingPrice}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Color:</span>
-                  <span>{product.variants?.[0]?.color}</span>
+                  <span className="text-muted-foreground">Batch #:</span>
+                  <span className="font-semibold">{product.batchNumber}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Size:</span>
-                  <span>{product.variants?.[0]?.size}</span>
-                  
+                  <span className="text-muted-foreground">last restocked:</span>
+                  <span className="font-semibold"> {product.lastRestocked}</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Desc:</span>
-                  <span>{product.description}</span>
+                  <span className="text-muted-foreground">Status:</span>
+                  <span className="font-semibold"> {product.status}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Supplier:</span>
+                  <span className="font-semibold"> {product.supplier}</span>
                 </div>
               </div>
               <div className="flex space-x-2">
