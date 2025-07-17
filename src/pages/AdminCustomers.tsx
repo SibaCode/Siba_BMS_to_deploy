@@ -35,6 +35,7 @@ const AdminCustomers = () => {
         }));
         
         setCustomers(items);
+        console.log(items)
       } catch (error) {
         console.error("Error fetching customers:", error);
       } finally {
@@ -47,7 +48,7 @@ const AdminCustomers = () => {
   
 
   const filteredCustomers = customers.filter(customer => {
-    const name = customer.name?.toLowerCase() || "";
+    const name = customer.firstName?.toLowerCase() || "";
     const email = customer.email?.toLowerCase() || "";
     const phone = customer.phone || "";
   
@@ -105,7 +106,7 @@ const AdminCustomers = () => {
               <div className="text-sm text-muted-foreground">Total Customers</div>
             </CardContent>
           </Card>
-          <Card>
+          {/* <Card>
             <CardContent className="p-4">
               <div className="text-2xl font-bold text-primary">{vipCustomers}</div>
               <div className="text-sm text-muted-foreground">VIP Customers</div>
@@ -122,7 +123,7 @@ const AdminCustomers = () => {
               <div className="text-2xl font-bold">R{avgOrderValue.toFixed(2)}</div>
               <div className="text-sm text-muted-foreground">Avg Order Value</div>
             </CardContent>
-          </Card>
+          </Card> */}
         </div>
 
         {/* Search */}
@@ -149,10 +150,10 @@ const AdminCustomers = () => {
                 <TableRow>
                   <TableHead>Customer</TableHead>
                   <TableHead>Contact</TableHead>
-                  <TableHead>Orders</TableHead>
+                  {/* <TableHead>Orders</TableHead>
                   <TableHead>Total Spent</TableHead>
-                  <TableHead>Last Order</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Last Order</TableHead> */}
+                  {/* <TableHead>Status</TableHead> */}
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -161,7 +162,7 @@ const AdminCustomers = () => {
                   <TableRow key={customer.id}>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{customer.name}</div>
+                        <div className="font-medium">{customer.firstName}</div>
                         <div className="text-sm text-muted-foreground">
                           Member since {customer.joinDate}
                         </div>
@@ -179,13 +180,13 @@ const AdminCustomers = () => {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>
+                    {/* <TableCell>
                       <div className="text-center">
                         <div className="text-lg font-semibold">{customer.totalOrders}</div>
                         <div className="text-xs text-muted-foreground">orders</div>
                       </div>
-                    </TableCell>
-                    <TableCell>
+                    </TableCell> */}
+                    {/* <TableCell>
                     <div className="font-medium">
                       R{Number(customer.totalSpent || 0).toFixed(2)}
                     </div>
@@ -197,19 +198,19 @@ const AdminCustomers = () => {
                       }
                     </div>
 
-                    </TableCell>
-                    <TableCell className="text-sm">{customer.lastOrder}</TableCell>
+                    </TableCell> */}
+                    {/* <TableCell className="text-sm">{customer.lastOrder}</TableCell>
                     <TableCell>
                     <Badge variant={getStatusBadgeVariant(customer.status || "")}>
                       {customer.status || "N/A"}
                     </Badge>
 
-                    </TableCell>
+                    </TableCell> */}
                     <TableCell>
                       <Button variant="outline" size="sm">
                         <Eye className="h-4 w-4" />
                       </Button>
-                    </TableCell>
+                    </TableCell> 
                   </TableRow>
                 ))}
               </TableBody>

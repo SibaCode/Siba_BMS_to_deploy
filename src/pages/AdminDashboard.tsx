@@ -1,33 +1,89 @@
-import { Link } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { 
-  Package, 
-  ShoppingCart, 
-  Users, 
-  DollarSign, 
-  TrendingUp, 
+import React, { useEffect, useState } from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/firebase";
+import {
+  Store,
+  Package,
+  ShoppingCart,
+  Users,
+  DollarSign,
+  TrendingUp,
   AlertTriangle,
-  FileText,
-  Store
-} from "lucide-react";
+} from "lucide-react"; // or your icon lib
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "@/components/ui/card"; 
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+
+// or wherever your UI components live
+import { Link } from "react-router-dom"; // or your router
 
 const AdminDashboard = () => {
-  // Mock data - in real app this would come from backend
-  const stats = {
-    totalProducts: 156,
-    lowStockItems: 8,
-    totalOrders: 342,
-    pendingOrders: 12,
-    totalCustomers: 89,
-    monthlyRevenue: 15420,
-    topProducts: [
-      { name: "Custom Aprons", sales: 45, revenue: 2250 },
-      { name: "Coffee Mugs", sales: 38, revenue: 1140 },
-      { name: "Umbrellas", sales: 22, revenue: 1320 }
-    ]
-  };
+  const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAllData = async () => {
+      try {
+        const productsCol = collection(db, "products");
+        const ordersCol = collection(db, "orders");
+        const customersCol = collection(db, "customers");
+
+        const [productsSnap, ordersSnap, customersSnap] = await Promise.all([
+          getDocs(productsCol),
+          getDocs(ordersCol),
+          getDocs(customersCol),
+        ]);
+
+        setProducts(productsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        setOrders(ordersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+        setCustomers(customersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      } catch (error) {
+        console.error("Error fetching collections:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllData();
+  }, []);
+
+  if (loading) return <div>Loading all data...</div>;
+
+  // Calculate stats dynamically
+  const totalProducts = products.length;
+
+  // Assuming each product has a `stock` property (number)
+  const lowStockItems = products.filter(p => p.stock !== undefined && p.stock <= 5).length;
+
+  const totalOrders = orders.length;
+  // Assuming orders have a `status` field
+  const pendingOrders = orders.filter(order => order.status === "pending").length;
+
+  const totalCustomers = customers.length;
+
+  // Assuming orders have an `amount` field (number) and a `date` field (timestamp or ISO string)
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  const monthlyRevenue = orders
+    .filter(order => {
+      const orderDate = new Date(order.date);
+      return orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear;
+    })
+    .reduce((acc, order) => acc + (order.amount || 0), 0);
+
+  // Top products - naive: top by sales field if exists, else empty array
+  // Assuming products have `sales` and `revenue` fields
+  const topProducts = [...products]
+    .filter(p => p.sales && p.revenue)
+    .sort((a, b) => b.sales - a.sales)
+    .slice(0, 3);
 
   return (
     <div className="min-h-screen bg-background">
@@ -60,11 +116,11 @@ const AdminDashboard = () => {
               <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalProducts}</div>
+              <div className="text-2xl font-bold">{totalProducts}</div>
               <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                 <span>Low stock:</span>
-                <Badge variant={stats.lowStockItems > 5 ? "destructive" : "secondary"}>
-                  {stats.lowStockItems}
+                <Badge variant={lowStockItems > 5 ? "destructive" : "secondary"}>
+                  {lowStockItems}
                 </Badge>
               </div>
             </CardContent>
@@ -76,10 +132,10 @@ const AdminDashboard = () => {
               <ShoppingCart className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalOrders}</div>
+              <div className="text-2xl font-bold">{totalOrders}</div>
               <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                 <span>Pending:</span>
-                <Badge variant="secondary">{stats.pendingOrders}</Badge>
+                <Badge variant="secondary">{pendingOrders}</Badge>
               </div>
             </CardContent>
           </Card>
@@ -90,7 +146,7 @@ const AdminDashboard = () => {
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.totalCustomers}</div>
+              <div className="text-2xl font-bold">{totalCustomers}</div>
               <p className="text-sm text-muted-foreground">+5 this month</p>
             </CardContent>
           </Card>
@@ -101,7 +157,7 @@ const AdminDashboard = () => {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">R{stats.monthlyRevenue.toLocaleString()}</div>
+              <div className="text-2xl font-bold">R{monthlyRevenue.toLocaleString()}</div>
               <div className="flex items-center space-x-1 text-sm text-success">
                 <TrendingUp className="h-3 w-3" />
                 <span>+12% from last month</span>
@@ -175,18 +231,19 @@ const AdminDashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">Premium Aprons</span>
-                  <Badge variant="destructive">3 left</Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">Travel Umbrellas</span>
-                  <Badge variant="destructive">2 left</Badge>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-sm">Limited Edition Mugs</span>
-                  <Badge variant="destructive">1 left</Badge>
-                </div>
+                {/* List actual low stock products */}
+                {products
+                  .filter(p => p.stock !== undefined && p.stock <= 5)
+                  .map(product => (
+                    <div
+                      key={product.id}
+                      className="flex justify-between items-center"
+                    >
+                      <span className="text-sm">{product.name || "Unnamed"}</span>
+                      <Badge variant="destructive">{product.stock} left</Badge>
+                    </div>
+                  ))}
+                {lowStockItems === 0 && <p className="text-sm text-muted-foreground">No low stock items!</p>}
               </div>
             </CardContent>
           </Card>
@@ -195,23 +252,23 @@ const AdminDashboard = () => {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <TrendingUp className="h-5 w-5 text-success" />
-                <span>Top Products This Month</span>
+                <span>Top Products</span>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
-                {stats.topProducts.map((product, index) => (
-                  <div key={index} className="flex justify-between items-center">
-                    <div>
-                      <div className="text-sm font-medium">{product.name}</div>
-                      <div className="text-xs text-muted-foreground">{product.sales} sales</div>
-                    </div>
-                    <div className="text-sm font-semibold">
-                      R{product.revenue.toLocaleString()}
-                    </div>
+              {topProducts.length > 0 ? (
+                topProducts.map(product => (
+                  <div
+                    key={product.id}
+                    className="flex justify-between items-center mb-2"
+                  >
+                    <span>{product.name}</span>
+                    <span className="font-semibold">Sold: {product.sales}</span>
                   </div>
-                ))}
-              </div>
+                ))
+              ) : (
+                <p className="text-sm text-muted-foreground">No sales data available.</p>
+              )}
             </CardContent>
           </Card>
         </div>
