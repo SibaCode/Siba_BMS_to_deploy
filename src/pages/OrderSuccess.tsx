@@ -5,7 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { useCart, Order } from "@/contexts/CartContext";
+import { useCart } from "@/contexts/CartContext";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import { useRef } from "react";
+
 import { 
   CheckCircle, 
   Package, 
@@ -14,11 +18,54 @@ import {
   Mail,
   ArrowRight
 } from "lucide-react";
+export interface Order {
+  id: string;
+  createdAt: string;
+  paymentMethod: string;
+  status: string;
+  subtotal: number;
+  total: number;
+  items: Array<{ name: string; price: number; quantity: number }>;
+  customer: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    address: string;
+    city: string;
+    postalCode: string;
+    province: string;
+  };
+}
+
+// Also export useCart and other stuff...
+export { useCart };
 
 const OrderSuccess = () => {
   const { lastOrder } = useCart();
   const [order, setOrder] = useState<Order | null>(null);
+  const receiptRef = useRef<HTMLDivElement>(null);
 
+  const handleDownloadReceipt = async () => {
+    if (!receiptRef.current) return;
+  
+    const canvas = await html2canvas(receiptRef.current, {
+      scale: 2, // better resolution
+      useCORS: true, // handles images from CDN
+    });
+  
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p", "mm", "a4");
+  
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+  
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    pdf.save("receipt.pdf");
+  };
+  
+  
   useEffect(() => {
     if (lastOrder) {
       setOrder(lastOrder);
@@ -122,6 +169,7 @@ const OrderSuccess = () => {
             </div>
           </CardContent>
         </Card>
+        <div ref={receiptRef}>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Order Details */}
@@ -215,7 +263,7 @@ const OrderSuccess = () => {
             </CardContent>
           </Card>
         </div>
-
+        </div>
         {/* Next Steps */}
         <Card className="mt-8">
           <CardHeader>
@@ -263,7 +311,7 @@ const OrderSuccess = () => {
         {/* Action Buttons */}
         <div className="mt-8 text-center">
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="outline" size="lg">
+          <Button variant="outline" onClick={handleDownloadReceipt}>
               <Download className="h-4 w-4 mr-2" />
               Download Receipt
             </Button>
