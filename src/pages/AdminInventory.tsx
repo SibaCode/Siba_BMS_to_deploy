@@ -40,50 +40,8 @@ const AdminInventory = () => {
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
-  // Mock data - in real app this would come from backend
-  const izinto = [
-    {
-      id: 1,
-      name: "Premium Apron",
-      category: "Aprons",
-      price: 45.99,
-      stock: 23,
-      type: "Perfect",
-      color: "Navy Blue",
-      size: "Medium",
-      image: "/api/placeholder/150/150"
-    },
-    {
-      id: 2,
-      name: "Coffee Mug Set",
-      category: "Mugs",
-      price: 29.99,
-      stock: 3,
-      type: "Limited Edition",
-      color: "White",
-      size: "Standard",
-      image: "/api/placeholder/150/150"
-    },
-    {
-      id: 3,
-      name: "Travel Umbrella",
-      category: "Umbrellas",
-      price: 59.99,
-      stock: 15,
-      type: "Perfect",
-      color: "Black",
-      size: "Compact",
-      image: "/api/placeholder/150/150"
-    }
-  ];
 
   const categories = ["all", "Aprons", "Mugs", "Umbrellas"];
-
-  const filteredizinto = izinto.filter(izintoSIba => {
-    const matchesSearch = izintoSIba.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = categoryFilter === "all" || izintoSIba.category === categoryFilter;
-    return matchesSearch && matchesCategory;
-  });
 
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -438,68 +396,7 @@ const AdminInventory = () => {
               <h1 className="text-2xl font-bold text-foreground">Inventory Management</h1>
             </div>
             <div className="flex items-center space-x-4">
-              <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-                <DialogTrigger asChild>
-                  <Button>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add izintoSIba
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Add New izintoSIba</DialogTitle>
-                  </DialogHeader>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="name">izintoSIba Name</Label>
-                      <Input id="name" placeholder="Enter izintoSIba name" />
-                    </div>
-                    <div>
-                      <Label htmlFor="category">Category</Label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select category" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Aprons">Aprons</SelectItem>
-                          <SelectItem value="Mugs">Mugs</SelectItem>
-                          <SelectItem value="Umbrellas">Umbrellas</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="price">Price</Label>
-                      <Input id="price" type="number" placeholder="0.00" />
-                    </div>
-                    <div>
-                      <Label htmlFor="stock">Stock Quantity</Label>
-                      <Input id="stock" type="number" placeholder="0" />
-                    </div>
-                    <div>
-                      <Label htmlFor="type">Type</Label>
-                      <Select>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Perfect">Perfect</SelectItem>
-                          <SelectItem value="Misprint">Misprint</SelectItem>
-                          <SelectItem value="Limited Edition">Limited Edition</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="color">Color</Label>
-                      <Input id="color" placeholder="Color" />
-                    </div>
-                    <div className="col-span-2">
-                      <Label htmlFor="description">Description</Label>
-                      <Textarea id="description" placeholder="izintoSIba description" />
-                    </div>
-                  </div>
-                  <Button className="w-full">Add izintoSIba</Button>
-                </DialogContent>
-              </Dialog>
+              
 
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
               <DialogTrigger asChild>
@@ -638,54 +535,27 @@ const AdminInventory = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold">{izinto.length}</div>
-              <div className="text-sm text-muted-foreground">Total izinto</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold text-destructive">{lowStockCount}</div>
-              <div className="text-sm text-muted-foreground">Low Stock Items</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold">{categories.length - 1}</div>
-              <div className="text-sm text-muted-foreground">Categories</div>
-              <CategoriesSection formData={formData} setFormData={setFormData} /> 
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4">
-              <div className="text-2xl font-bold">R{izinto.reduce((sum, p) => sum + (p.price * p.stock), 0).toFixed(2)}</div>
-              <div className="text-sm text-muted-foreground">Total Value</div>
-            </CardContent>
-          </Card>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-  {products.map((product) => {
-    const totalVariants = product.variants?.length || 0;
-    const totalStock = product.variants?.reduce(
-      (sum, variant) => sum + (variant.stockQuantity || 0),
-      0
-    );
+       
+        {/* <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {products.map((product) => {
+          const totalVariants = product.variants?.length || 0;
+          const totalStock = product.variants?.reduce(
+            (sum, variant) => sum + (variant.stockQuantity || 0),
+            0
+          );
 
-    return (
-      <Card key={product.productID}>
-        <CardContent className="p-4">
-          <CardTitle>{product.name}</CardTitle>
-          <div className="text-sm text-muted-foreground">{product.category}</div>
-          <div className="mt-2 text-lg font-bold">{totalVariants} variants</div>
-          <div className="text-sm">Total Stock: {totalStock}</div>
-        </CardContent>
-      </Card>
-    );
-  })}
-</div>
+          return (
+            <Card key={product.productID}>
+              <CardContent className="p-4">
+                <CardTitle>{product.name}</CardTitle>
+                <div className="text-sm text-muted-foreground">{product.category}</div>
+                <div className="mt-2 text-lg font-bold">{totalVariants} variants</div>
+                <div className="text-sm">Total Stock: {totalStock}</div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div> */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <Card>
             <CardContent className="p-4">
@@ -707,7 +577,7 @@ const AdminInventory = () => {
           </Card>
           <Card>
             <CardContent className="p-4">
-              <div className="text-2xl font-bold">R{products.reduce((sum, p) => sum + (p.price * p.stock), 0).toFixed(2)}</div>
+              <div className="text-2xl font-bold">R{products.reduce((sum, p) => sum + (p.selling * p.stock), 0).toFixed(2)}</div>
               <div className="text-sm text-muted-foreground">Total Value</div>
             </CardContent>
           </Card>
@@ -717,7 +587,7 @@ const AdminInventory = () => {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search izinto..."
+              placeholder="Search products..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -803,70 +673,6 @@ const AdminInventory = () => {
           </Card>
         ))}
       </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredizinto.map((izintoSIba) => (
-            <Card key={izintoSIba.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="aspect-square bg-muted rounded-lg mb-3 flex items-center justify-center">
-                  <Package className="h-12 w-12 text-muted-foreground" />
-                </div>
-                <CardTitle className="text-lg">{izintoSIba.name}</CardTitle>
-                <div className="flex items-center justify-between">
-                  <Badge variant="secondary">{izintoSIba.category}</Badge>
-                  <Badge variant={izintoSIba.stock < 5 ? "destructive" : "default"}>
-                    {izintoSIba.stock < 5 && <AlertTriangle className="h-3 w-3 mr-1" />}
-                    {izintoSIba.stock} in stock
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2 mb-4">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Price:</span>
-                    <span className="font-semibold">R{izintoSIba.price}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Type:</span>
-                    <span>{izintoSIba.type}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Color:</span>
-                    <span>{izintoSIba.color}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Size:</span>
-                    <span>{izintoSIba.size}</span>
-                  </div>
-                </div>
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm" className="flex-1">
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {filteredizinto.length === 0 && (
-          <Card className="py-12">
-            <CardContent className="text-center">
-              <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No izinto found</h3>
-              <p className="text-muted-foreground">
-                {searchTerm || categoryFilter !== "all" 
-                  ? "Try adjusting your search or filter criteria"
-                  : "Add your first izintoSIba to get started"
-                }
-              </p>
-            </CardContent>
-          </Card>
-        )}
       </div>
     </div>
   );
