@@ -8,20 +8,42 @@ import { useBusinessInfo } from "@/pages/components/BusinessInfoContext";
 const Navbar = () => {
   const { itemCount } = useCart();
   const location = useLocation();
-  const info = useBusinessInfo();
+  const { businessInfo, loading } = useBusinessInfo();
+  console.log(businessInfo)
+
+  if (loading) {
+    return (
+      <header className="border-b bg-white sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-4">
+              <Store className="h-8 w-8 text-primary animate-pulse" />
+              <h1 className="text-2xl font-bold text-foreground">Loading...</h1>
+            </div>
+          </div>
+        </div>
+      </header>
+    );
+  }
 
   return (
     <header className="border-b bg-white sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-4">
-            <Store className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold text-foreground">
-              {info?.name || "Loading..."}
-            </h1>
+            {businessInfo?.logo ? (
+              <img
+                src={businessInfo.logo}
+                alt={`${businessInfo.name || "Business"} logo`}
+                className="h-8 w-8 object-contain"
+              />
+            ) : (
+              <Store className="h-8 w-8 text-primary" />
+            )}
+            <h1 className="text-2xl font-bold text-foreground">{businessInfo?.name || "Business"}</h1>
           </div>
           <nav className="flex items-center space-x-6 text-sm font-medium">
-            <Link to="/store" className={location.pathname === "/store" ? "text-primary" : ""}>Shop</Link>
+            <Link to="/" className={location.pathname === "/" ? "text-primary" : ""}>Home</Link>
             <Link to="/about-us" className={location.pathname === "/about-us" ? "text-primary" : ""}>About Us</Link>
             <Link to="/contact-us" className={location.pathname === "/contact-us" ? "text-primary" : ""}>Contact Us</Link>
             <Button asChild className="relative">
