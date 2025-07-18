@@ -132,11 +132,25 @@ const { businessInfo } = useBusinessInfo();
       </div>
 
       {/* Invoice Content */}
+      
       <div
         id="invoice-content"
         className="max-w-4xl mx-auto px-4 py-8 bg-white"
-        style={{ color: "#000" }}
-      >
+        style={{ color: "#000" }} >
+          <div className="flex justify-center mb-6">
+        {businessInfo.logo ? (
+          <img
+            src={businessInfo.logo}
+            alt={`${businessInfo.name} Logo`}
+            className="h-20 object-contain"
+          />
+        ) : (
+          <div className="h-20 w-40 flex items-center justify-center bg-gray-200 text-gray-500 uppercase tracking-widest font-bold">
+            LOGO
+          </div>
+        )}
+      </div>
+
         <Card>
           <CardContent className="p-8">
             {/* Header */}
@@ -208,18 +222,16 @@ const { businessInfo } = useBusinessInfo();
               </div>
             </div>
 
-            {/* Payment Info */}
             <div className="mb-6">
-              <h3 className="font-semibold mb-2">Payment Info</h3>
-              <div className="flex justify-between items-center bg-muted p-4 rounded">
-                <div>
-                  <p><strong>Method:</strong> {invoice.paymentMethod || "N/A"}</p>
-                </div>
-                <Badge variant={invoice.paymentStatus === "Paid" ? "default" : "secondary"}>
-                  {invoice.paymentStatus || "Pending"}
-                </Badge>
-              </div>
+            <h3 className="font-semibold mb-2">Bank Account Details</h3>
+            <div className="bg-muted p-4 rounded text-sm space-y-1">
+            <p>Payment Method:{invoice.paymentMethod || "N/A"}</p>
+              <p><strong>Account Holder:</strong> {businessInfo.accountHolder || "N/A"}</p>
+              <p><strong>Bank:</strong> {businessInfo.bankName || "N/A"}</p>
+              <p><strong>Account Number:</strong> {businessInfo.accountNumber || "N/A"}</p>
+              <p><strong>Branch Code:</strong> {businessInfo.branchCode || "N/A"}</p>
             </div>
+          </div>
 
             {/* Footer */}
             <div className="text-center text-sm text-muted-foreground border-t pt-4">
