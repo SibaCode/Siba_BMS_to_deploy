@@ -47,12 +47,7 @@ const AdminOrders = () => {
     fetchOrders();
   }, []);
   
-  // const filteredOrders = orders.filter(order => {
-  //   const matchesSearch = order.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //                        order.id.toLowerCase().includes(searchTerm.toLowerCase());
-  //   const matchesStatus = statusFilter === "all" || order.paymentStatus.toLowerCase() === statusFilter;
-  //   return matchesSearch && matchesStatus;
-  // });
+ 
   const filteredOrders = orders.filter(order => {
     // Compose a string for customer name
     const customerName = `${order.customer.firstName} ${order.customer.lastName}`.toLowerCase();
@@ -95,8 +90,8 @@ const AdminOrders = () => {
     switch (status.toLowerCase()) {
       case "delivered":
         return "default";
-      case "shipped":
-        return "secondary";
+      case "not delivered":
+        return "destructive";
       case "processing":
         return "secondary";
       default:
@@ -240,12 +235,9 @@ const AdminOrders = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {/* <Badge variant={getDeliveryStatusBadgeVariant(order.deliveryStatus)}>
-                        {order.deliveryStatus}
-                      </Badge> */}
-                      {order.deliveryStatus && (
-                      <Badge variant={getDeliveryStatusBadgeVariant(order.deliveryStatus)}>
-                        {order.deliveryStatus}
+                      {order.status && (
+                      <Badge variant={getDeliveryStatusBadgeVariant(order.status)}>
+                        {order.status}
                       </Badge>
                     )}
                     </TableCell>
