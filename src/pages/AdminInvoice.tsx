@@ -9,6 +9,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/firebase";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { useBusinessInfo } from "@/pages/components/BusinessInfoContext";
 
 interface InvoiceItem {
   name: string;
@@ -29,7 +30,7 @@ interface CustomerInfo {
 }
 
 interface InvoiceData {
-  id: string;
+  orderId: string;
   invoiceNumber: string;
   orderDate: string;
   dueDate: string;
@@ -47,13 +48,10 @@ const AdminInvoice = () => {
   const { id } = useParams();
   const [invoice, setInvoice] = useState<InvoiceData | null>(null);
   const [loading, setLoading] = useState(true);
-
-  const businessInfo = {
-    name: "Sibahle Accessories",
-    address: "D1515 Ntaphuka Road, Ndwedwe, 4342",
-    phone: "071-103-5654",
-    email: "info@sibaaccessories.com",
-  };
+console.log(invoice)
+const { businessInfo } = useBusinessInfo();
+// console.log(businessInfo)
+  // const [businessInfo, setBusinessInfo] = useState([]);
 
   // Helper to safely format currency numbers
   const formatCurrency = (num?: number) =>
@@ -76,7 +74,7 @@ const AdminInvoice = () => {
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`Invoice-${invoice?.invoiceNumber || "unknown"}.pdf`);
+      pdf.save(`Invoice-${invoice?.orderId || "unknown"}.pdf`);
     });
   };
 
@@ -121,7 +119,7 @@ const AdminInvoice = () => {
             </Button>
             <FileText className="h-6 w-6 text-primary" />
             <h1 className="text-2xl font-bold">
-              Invoice #{invoice.invoiceNumber}
+              Invoice #{invoice.orderId}
             </h1>
           </div>
           <div className="flex gap-2">
@@ -152,7 +150,7 @@ const AdminInvoice = () => {
                 </div>
               </div>
               <div className="text-right text-sm">
-                <p><strong>Invoice #:</strong> {invoice.id}</p>
+                <p><strong>Invoice #:</strong> {invoice.orderId}</p>
                 <p><strong>Order Date:</strong> {invoice.createdAt || "N/A"}</p>
                 <p><strong>Due Date:</strong> {invoice.createdAt || "N/A"}</p>
               </div>

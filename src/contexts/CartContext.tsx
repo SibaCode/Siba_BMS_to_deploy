@@ -12,7 +12,7 @@ export interface CartItem {
   image?: string;
 }
 interface Order {
-  id: string;
+  orderId: string;
   items: any[]; // Replace with your actual item type
   customer: {
     firstName: string;
@@ -198,7 +198,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
     // Step 2: Create order object with customerId added
     const order: Order = {
-      id: orderId,
+      orderId: orderId,
       items: [...state.items],
       customer,
       paymentMethod,
