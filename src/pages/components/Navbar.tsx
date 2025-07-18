@@ -3,10 +3,12 @@ import { ShoppingCart, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCart } from "@/contexts/CartContext";
+import { useBusinessInfo } from "@/pages/components/BusinessInfoContext";
 
 const Navbar = () => {
   const { itemCount } = useCart();
   const location = useLocation();
+  const info = useBusinessInfo();
 
   return (
     <header className="border-b bg-white sticky top-0 z-50">
@@ -14,7 +16,9 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center space-x-4">
             <Store className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold text-foreground">Sibahle Accessories</h1>
+            <h1 className="text-2xl font-bold text-foreground">
+              {info?.name || "Loading..."}
+            </h1>
           </div>
           <nav className="flex items-center space-x-6 text-sm font-medium">
             <Link to="/store" className={location.pathname === "/store" ? "text-primary" : ""}>Shop</Link>

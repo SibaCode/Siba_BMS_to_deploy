@@ -21,12 +21,17 @@ import { Button } from "@/components/ui/button";
 
 // or wherever your UI components live
 import { Link } from "react-router-dom"; // or your router
+import BusinessInfo from "./BusinessInfo"; // adjust path accordingly
+
+// ... inside your dashboard return JSX, add somewhere:
+
 
 const AdminDashboard = () => {
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [businessInfo, setBusinessInfo] = useState([]);
 
   useEffect(() => {
     const fetchAllData = async () => {
@@ -34,13 +39,17 @@ const AdminDashboard = () => {
         const productsCol = collection(db, "products");
         const ordersCol = collection(db, "orders");
         const customersCol = collection(db, "customers");
-
-        const [productsSnap, ordersSnap, customersSnap] = await Promise.all([
+        const businessInfoCol = collection(db, "businessInfo");
+        
+        
+        const [productsSnap, ordersSnap, customersSnap, businessInfoSnap] = await Promise.all([
           getDocs(productsCol),
           getDocs(ordersCol),
           getDocs(customersCol),
-        ]);
+          getDocs(businessInfoCol),
 
+        ]);
+        setBusinessInfo(businessInfoSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
         setProducts(productsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
         setOrders(ordersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
         setCustomers(customersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
@@ -58,6 +67,7 @@ const AdminDashboard = () => {
 
   // Calculate stats dynamically
   const totalProducts = products.length;
+  const allBiz = businessInfo.length;
 
   // Assuming each product has a `stock` property (number)
   const lowStockItems = products.filter(p => p.stock !== undefined && p.stock <= 5).length;
@@ -102,6 +112,9 @@ const AdminDashboard = () => {
               <Button asChild>
                 <Link to="/admin/inventory">Manage Inventory</Link>
               </Button>
+              <Button asChild>
+                <Link to="/admin/business">Manage Business</Link>
+              </Button>
             </div>
           </div>
         </div>
@@ -140,6 +153,16 @@ const AdminDashboard = () => {
             </CardContent>
           </Card>
 
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">All biz</CardTitle>
+              <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{allBiz}</div>
+             
+            </CardContent>
+          </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Total Customers</CardTitle>

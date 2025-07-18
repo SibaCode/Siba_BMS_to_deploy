@@ -21,10 +21,13 @@ import AboutUs from "./pages/components/AboutUs";
 import ContactUs from "./pages/components/ContactUs";
 import Navbar from "./pages/components/Navbar";
 import Footer from "./pages/components/Footer";
+import BusinessInfo from "./pages/BusinessInfo";
+import { BusinessInfoProvider } from "./pages/components/BusinessInfoContext";
 
 const queryClient = new QueryClient();
 
 const App = () => (
+  <BusinessInfoProvider>
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <CartProvider>
@@ -40,6 +43,7 @@ const App = () => (
             {/* <Route path="/" element={<Index />} /> */}
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/inventory" element={<AdminInventory />} />
+            <Route path="/admin/business" element={<BusinessInfo />} />
             <Route path="/admin/orders" element={<AdminOrders />} />
             <Route path="/admin/customers" element={<AdminCustomers />} />
             <Route path="/admin/invoice/:id" element={<AdminInvoice />} />
@@ -60,6 +64,8 @@ const App = () => (
       </CartProvider>
     </TooltipProvider>
   </QueryClientProvider>
+  </BusinessInfoProvider>
+
 );
 
 export default App;

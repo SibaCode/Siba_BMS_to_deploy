@@ -201,14 +201,6 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="border-t py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-muted-foreground">
-            Complete e-commerce solution built with modern web technologies
-          </p>
-        </div>
-      </footer>
     </div>
   );
 };
