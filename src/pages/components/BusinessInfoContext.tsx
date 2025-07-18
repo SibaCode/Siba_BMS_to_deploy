@@ -9,16 +9,18 @@ export const useBusinessInfo = () => useContext(BusinessInfoContext);
 
 export const BusinessInfoProvider = ({ children }) => {
   const [info, setInfo] = useState(null);
-  const id = "BDPGvyvz8w0mAI8PIPjw"; // Your document ID here
-  const fetchAllDocs = async () => {
-    const snapshot = await getDocs(collection(db, "businessInfo"));
-    snapshot.docs.forEach(doc => {
-      // console.log("Doc ID:", doc.id, "Data:", doc.data());
-    });
-  };
-  fetchAllDocs();
-  
+  const id = "BDPGvyvz8w0mAI8PIPjw";
+
   useEffect(() => {
+    const fetchAllDocs = async () => {
+      const snapshot = await getDocs(collection(db, "businessInfo"));
+      snapshot.docs.forEach(doc => {
+        console.log("Doc ID:", doc.id, "Data:", doc.data());
+      });
+    };
+    
+    fetchAllDocs();
+
     const fetchInfo = async () => {
       try {
         const docRef = doc(db, "businessInfo", id);
@@ -39,8 +41,8 @@ export const BusinessInfoProvider = ({ children }) => {
   }, [id]);
 
   return (
-    <BusinessInfoContext.Provider value={info}>
-      {children}
+<BusinessInfoContext.Provider value={{ businessInfo: info }}>
+{children}
     </BusinessInfoContext.Provider>
   );
 };

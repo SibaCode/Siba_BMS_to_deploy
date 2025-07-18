@@ -1,23 +1,12 @@
-
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { useCart } from "@/contexts/CartContext";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
-import { useRef } from "react";
+import { useBusinessInfo } from "./components/BusinessInfoContext";
+import { Download } from "lucide-react";
 
-import { 
-  CheckCircle, 
-  Package, 
-  Store, 
-  Download,
-  Mail,
-  ArrowRight
-} from "lucide-react";
 export interface Order {
   id: string;
   createdAt: string;
@@ -38,45 +27,22 @@ export interface Order {
   };
 }
 
-// Also export useCart and other stuff...
 export { useCart };
 
 const OrderSuccess = () => {
   const { lastOrder } = useCart();
   const [order, setOrder] = useState<Order | null>(null);
   const receiptRef = useRef<HTMLDivElement>(null);
+  const { businessInfo } = useBusinessInfo() || {};
 
-  const handleDownloadReceipt = async () => {
-    if (!receiptRef.current) return;
-  
-    const canvas = await html2canvas(receiptRef.current, {
-      scale: 2, // better resolution
-      useCORS: true, // handles images from CDN
-    });
-  
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF("p", "mm", "a4");
-  
-    const imgProps = pdf.getImageProperties(imgData);
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-  
-    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
-    pdf.save("receipt.pdf");
-  };
-  
-  
   useEffect(() => {
     if (lastOrder) {
       setOrder(lastOrder);
     } else {
-      // Try to get the most recent order from localStorage
-      const savedOrders = localStorage.getItem('orders');
+      const savedOrders = localStorage.getItem("orders");
       if (savedOrders) {
         const orders = JSON.parse(savedOrders);
-        if (orders.length > 0) {
-          setOrder(orders[orders.length - 1]);
-        }
+        if (orders.length > 0) setOrder(orders[orders.length - 1]);
       }
     }
   }, [lastOrder]);
@@ -84,246 +50,177 @@ const OrderSuccess = () => {
   if (!order) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Card className="max-w-md mx-auto">
-          <CardContent className="pt-6 text-center">
-            <h2 className="text-xl font-semibold mb-4">No order found</h2>
-            <p className="text-muted-foreground mb-6">We couldn't find your order details.</p>
-            <Button asChild>
-              <Link to="/store">Return to Store</Link>
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="max-w-md mx-auto p-6 border rounded shadow text-center">
+          <h2 className="text-xl font-semibold mb-4">No order found</h2>
+          <p className="text-gray-600 mb-6">We couldn't find your order details.</p>
+          <Button asChild>
+            <Link to="/store">Return to Store</Link>
+          </Button>
+        </div>
       </div>
     );
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-ZA', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+  if (!businessInfo) {
+    return <div>Loading business information...</div>;
+  }
+
+  const handleDownloadReceipt = async () => {
+    if (!receiptRef.current) return;
+
+    const canvas = await html2canvas(receiptRef.current, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: "#ffffff",
     });
+
+    const imgData = canvas.toDataURL("image/png");
+    const pdf = new jsPDF("p", "mm", "a4");
+
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+    pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+    pdf.save("receipt.pdf");
   };
 
-  const getEstimatedDelivery = () => {
-    const orderDate = new Date(order.createdAt);
-    const deliveryDate = new Date(orderDate);
-    deliveryDate.setDate(orderDate.getDate() + 3); // 3 days for delivery
-    return deliveryDate.toLocaleDateString('en-ZA', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-ZA", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <Store className="h-8 w-8 text-primary" />
-              <h1 className="text-2xl font-bold text-foreground">Order Confirmation</h1>
+    <div className="min-h-screen bg-gray-50 py-10 flex flex-col items-center">
+      {/* Receipt */}
+      <div
+        ref={receiptRef}
+        className="bg-white w-full max-w-md p-6 shadow-md border border-gray-200 font-mono text-gray-900"
+      >
+        {/* Business Logo */}
+        <div className="flex justify-center mb-6">
+          {businessInfo.logo ? (
+            <img
+              src={businessInfo.logo}
+              alt={`${businessInfo.name} Logo`}
+              className="h-20 object-contain"
+            />
+          ) : (
+            <div className="h-20 w-40 flex items-center justify-center bg-gray-200 text-gray-500 uppercase tracking-widest font-bold">
+              LOGO
             </div>
+          )}
+        </div>
+
+        {/* Business Info */}
+        <div className="text-center mb-6">
+          <h2 className="text-lg font-bold">{businessInfo.name}</h2>
+          <div>{businessInfo.addressLine1}</div>
+          <div>
+            {businessInfo.city}, {businessInfo.postalCode}
+          </div>
+          <div>{businessInfo.province}</div>
+          <div>Phone: {businessInfo.phone}</div>
+          <div>Email: {businessInfo.email}</div>
+          {businessInfo.website && (
+            <div className="underline text-blue-600">
+              <a href={businessInfo.website} target="_blank" rel="noopener noreferrer">
+                {businessInfo.website}
+              </a>
+            </div>
+          )}
+        </div>
+
+        <hr className="border-gray-300 mb-6" />
+
+        {/* Order Summary */}
+        <div className="mb-4">
+          <div className="flex justify-between">
+            <span>Order Number:</span>
+            <span>{order.id}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Order Date:</span>
+            <span>{formatDate(order.createdAt)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Payment Method:</span>
+            <span className="capitalize">{order.paymentMethod}</span>
+          </div>
+          <div className="flex justify-between">
+            <span>Status:</span>
+            <span className="capitalize">{order.status}</span>
+          </div>
+        </div>
+
+        <hr className="border-gray-300 mb-4" />
+
+        {/* Items Table */}
+        <table className="w-full text-left border-collapse mb-4">
+          <thead>
+            <tr className="border-b border-gray-300">
+              <th className="py-1 px-2 text-sm">Item</th>
+              <th className="py-1 px-2 text-sm">Qty</th>
+              <th className="py-1 px-2 text-sm">Price</th>
+              <th className="py-1 px-2 text-sm">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {order.items.map((item, idx) => (
+              <tr key={idx} className="border-b border-gray-200">
+                <td className="py-1 px-2 text-sm">{item.name}</td>
+                <td className="py-1 px-2 text-sm">{item.quantity}</td>
+                <td className="py-1 px-2 text-sm">R {item.price.toFixed(2)}</td>
+                <td className="py-1 px-2 text-sm">R {(item.price * item.quantity).toFixed(2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {/* Totals */}
+        <div className="flex justify-between font-semibold text-sm mb-2">
+          <span>Subtotal:</span>
+          <span>R {order.subtotal.toFixed(2)}</span>
+        </div>
+        <div className="flex justify-between font-semibold text-base border-t border-gray-300 pt-2">
+          <span>Total:</span>
+          <span>R {order.total.toFixed(2)}</span>
+        </div>
+
+        <hr className="border-gray-300 my-6" />
+
+        {/* Customer Info */}
+        <div>
+          <div className="font-semibold mb-1">Customer Information</div>
+          <div className="text-sm">
+            <div>
+              {order.customer.firstName} {order.customer.lastName}
+            </div>
+            <div>{order.customer.address}</div>
+            <div>
+              {order.customer.city}, {order.customer.postalCode}
+            </div>
+            <div>{order.customer.province}</div>
+            <div>Phone: {order.customer.phone}</div>
+            <div>Email: {order.customer.email}</div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Success Message */}
-        <Card className="mb-8">
-          <CardContent className="pt-8">
-            <div className="text-center">
-              <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
-              <h2 className="text-3xl font-bold text-green-600 mb-2">Order Placed Successfully!</h2>
-              <p className="text-lg text-muted-foreground mb-4">
-                Thank you for your order. Your order #{order.id} has been confirmed.
-              </p>
-              <div className="flex justify-center space-x-4 mb-6">
-                <Badge variant="secondary" className="px-4 py-2">
-                  <Mail className="h-4 w-4 mr-2" />
-                  Confirmation details saved
-                </Badge>
-                <Badge 
-                  variant={order.status === 'confirmed' ? 'default' : 'secondary'} 
-                  className="px-4 py-2"
-                >
-                  Status: {order.status}
-                </Badge>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button asChild variant="outline">
-                  <Link to="/store">
-                    <Store className="h-4 w-4 mr-2" />
-                    Continue Shopping
-                  </Link>
-                </Button>
-                <Button asChild>
-                  <Link to="/admin/orders">
-                    <Package className="h-4 w-4 mr-2" />
-                    View in Admin
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <div ref={receiptRef}>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Order Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Package className="h-5 w-5" />
-                <span>Order Details</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Order Number:</span>
-                  <span className="font-medium">{order.id}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Order Date:</span>
-                  <span className="font-medium">{formatDate(order.createdAt)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Payment Method:</span>
-                  <span className="font-medium capitalize">{order.paymentMethod}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Estimated Delivery:</span>
-                  <span className="font-medium">{getEstimatedDelivery()}</span>
-                </div>
-                <Separator />
-                <div>
-                  <h4 className="font-semibold mb-2">Items Ordered:</h4>
-                  <div className="space-y-2">
-                    {order.items.map((item, index) => (
-                      <div key={index} className="flex justify-between items-center">
-                        <div>
-                          <span className="font-medium">{item.name}</span>
-                          <span className="text-muted-foreground text-sm ml-2">
-                            x{item.quantity}
-                          </span>
-                        </div>
-                        <span className="font-semibold">
-                          R{(item.price * item.quantity).toFixed(2)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <Separator />
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>Subtotal:</span>
-                    <span>R{order.subtotal.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-lg font-bold">
-                    <span>Total:</span>
-                    <span>R{order.total.toFixed(2)}</span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Customer Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Customer Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <span className="text-muted-foreground">Name:</span>
-                  <div className="font-medium">{order.customer.firstName} {order.customer.lastName}</div>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Email:</span>
-                  <div className="font-medium">{order.customer.email}</div>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Phone:</span>
-                  <div className="font-medium">{order.customer.phone}</div>
-                </div>
-                <div>
-                  <span className="text-muted-foreground">Shipping Address:</span>
-                  <div className="font-medium">
-                    {order.customer.address}<br />
-                    {order.customer.city}, {order.customer.postalCode}<br />
-                    {order.customer.province}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        </div>
-        {/* Next Steps */}
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle>What happens next?</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-start space-x-3">
-                <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">
-                  1
-                </div>
-                <div>
-                  <h4 className="font-semibold">Order Confirmation</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Your order has been confirmed and saved to our system.
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-3">
-                <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">
-                  2
-                </div>
-                <div>
-                  <h4 className="font-semibold">Order Processing</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Our team will prepare your order for shipment.
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start space-x-3">
-                <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-bold">
-                  3
-                </div>
-                <div>
-                  <h4 className="font-semibold">Shipping & Delivery</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Your order will be shipped and delivered by {getEstimatedDelivery()}.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Action Buttons */}
-        <div className="mt-8 text-center">
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Button variant="outline" onClick={handleDownloadReceipt}>
-              <Download className="h-4 w-4 mr-2" />
-              Download Receipt
-            </Button>
-            <Button asChild size="lg">
-              <Link to="/store">
-                <Store className="h-4 w-4 mr-2" />
-                Continue Shopping
-                <ArrowRight className="h-4 w-4 ml-2" />
-              </Link>
-            </Button>
-          </div>
-        </div>
+      {/* Download Button */}
+      <div className="mt-6">
+        <Button
+          onClick={handleDownloadReceipt}
+          variant="outline"
+          size="lg"
+          className="flex items-center space-x-2"
+        >
+          <Download className="w-5 h-5" />
+          <span>Download Receipt (PDF)</span>
+        </Button>
       </div>
     </div>
   );

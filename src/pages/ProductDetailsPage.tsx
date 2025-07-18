@@ -198,7 +198,7 @@ const ProductDetailsPage = () => {
               {/* <Button variant="outline" asChild>
                 <Link to="/admin">Admin Panel</Link>
               </Button> */}
-              <Button asChild className="relative">
+              {/* <Button asChild className="relative">
                 <Link to="/store/cart">
                   <ShoppingCart className="h-4 w-4 mr-2" />
                   Cart
@@ -208,7 +208,7 @@ const ProductDetailsPage = () => {
                     </Badge>
                   )}
                 </Link>
-              </Button>
+              </Button> */}
             </div>
           </div>
         </div>
@@ -261,7 +261,7 @@ const ProductDetailsPage = () => {
                 {product.category}
               </Badge>
               <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
-              <div className="flex items-center space-x-2 mb-4">
+              {/* <div className="flex items-center space-x-2 mb-4">
                 <div className="flex items-center">
                   {[...Array(5)].map((_, i) => (
                     <Star
@@ -271,7 +271,7 @@ const ProductDetailsPage = () => {
                   ))}
                 </div>
                 <span className="text-sm text-muted-foreground">(4.8) • 124 reviews</span>
-              </div>
+              </div> */}
               <div className="text-3xl font-bold text-primary mb-4">
                 R{selectedVariant?.sellingPrice || product.price || 0}
               </div>
@@ -360,7 +360,7 @@ const ProductDetailsPage = () => {
             </Button>
 
             {/* Additional Info */}
-            <div className="grid grid-cols-2 gap-4 mt-8 text-muted-foreground">
+            {/* <div className="grid grid-cols-2 gap-4 mt-8 text-muted-foreground">
               <div className="flex items-center space-x-2">
                 <Package />
                 <span>Fast shipping on all orders</span>
@@ -377,7 +377,7 @@ const ProductDetailsPage = () => {
                 <Store />
                 <span>Trusted store with quality products</span>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
 

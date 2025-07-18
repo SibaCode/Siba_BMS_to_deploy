@@ -212,10 +212,6 @@ const PublicStore = () => {
           </Card>
         )}
       </div>
-     
-      <Button variant="outline" asChild>
-                <Link to="/admin">Admin Panel</Link>
-              </Button>
     </div>
   );
 };
