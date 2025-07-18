@@ -27,7 +27,7 @@ interface Order {
   paymentMethod: string;
   subtotal: number;
   total: number;
-  status: string;
+  deliveryStatus: string;
   createdAt: string;
   customerId?: string; // Added customerId as optional
 }
@@ -204,7 +204,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       paymentMethod,
       subtotal,
       total,
-      status: paymentMethod === "cash" ? "confirmed" : "pending",
+      deliveryStatus: paymentMethod === "cash" ? "confirmed" : "pending",
       createdAt: new Date().toISOString(),
       customerId: customerId || undefined,
     };

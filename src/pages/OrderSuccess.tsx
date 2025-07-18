@@ -11,7 +11,7 @@ export interface Order {
   id: string;
   createdAt: string;
   paymentMethod: string;
-  status: string;
+  deliveryStatus: string;
   subtotal: number;
   total: number;
   items: Array<{ name: string; price: number; quantity: number }>;
@@ -151,8 +151,8 @@ const OrderSuccess = () => {
             <span className="capitalize">{order.paymentMethod}</span>
           </div>
           <div className="flex justify-between">
-            <span>Status:</span>
-            <span className="capitalize">{order.status}</span>
+            <span>Delivery Status:</span>
+            <span className="capitalize">{order.deliveryStatus}</span>
           </div>
         </div>
 

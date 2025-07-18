@@ -41,6 +41,7 @@ interface InvoiceData {
   paymentMethod: string;
   paymentStatus: string;
   createdAt:string;
+  deliveryStatus:string;
 
 }
 
@@ -221,11 +222,16 @@ const { businessInfo } = useBusinessInfo();
                 </div>
               </div>
             </div>
-
+            <div className="mb-6">
+            <h3 className="font-semibold mb-2">Order status</h3>
+            <div className="bg-muted p-4 rounded text-sm space-y-1">
+              <p><strong>Payment Method:</strong> {invoice.paymentMethod || "N/A"}</p>
+              <p><strong>Delivery Status:</strong> {businessInfo.deliveryStatus || "N/A"}</p>
+            </div>
+          </div>
             <div className="mb-6">
             <h3 className="font-semibold mb-2">Bank Account Details</h3>
             <div className="bg-muted p-4 rounded text-sm space-y-1">
-            <p>Payment Method:{invoice.paymentMethod || "N/A"}</p>
               <p><strong>Account Holder:</strong> {businessInfo.accountHolder || "N/A"}</p>
               <p><strong>Bank:</strong> {businessInfo.bankName || "N/A"}</p>
               <p><strong>Account Number:</strong> {businessInfo.accountNumber || "N/A"}</p>

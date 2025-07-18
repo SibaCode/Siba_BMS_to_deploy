@@ -196,7 +196,7 @@ const AdminOrders = () => {
                   <TableHead>Total</TableHead>
                   <TableHead>Payment</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Date</TableHead>
+                  {/* <TableHead>Date</TableHead> */}
                   <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -235,18 +235,18 @@ const AdminOrders = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {order.status && (
-                      <Badge variant={getDeliveryStatusBadgeVariant(order.status)}>
-                        {order.status}
+                      {order.deliveryStatus && (
+                      <Badge variant={getDeliveryStatusBadgeVariant(order.deliveryStatus)}>
+                        {order.deliveryStatus}
                       </Badge>
                     )}
                     </TableCell>
-                    <TableCell className="text-sm">
+                    {/* <TableCell className="text-sm">
                       <div>{order.orderDate}</div>
                       {order.deliveryDate && (
                         <div className="text-muted-foreground">Delivered: {order.deliveryDate}</div>
                       )}
-                    </TableCell>
+                    </TableCell> */}
                     <TableCell>
                       <div className="flex space-x-2">
                         <Button variant="outline" size="sm">
