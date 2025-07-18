@@ -20,6 +20,8 @@ import ProductDetailsPage from "./pages/ProductDetailsPage"; // or wherever you 
 import AboutUs from "./pages/components/AboutUs";
 import ContactUs from "./pages/components/ContactUs";
 import Navbar from "./pages/components/Navbar";
+import Footer from "./pages/components/Footer";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -29,7 +31,11 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+        <div className="min-h-screen flex flex-col">
+
         <Navbar />
+        <main className="flex-grow">
+
           <Routes>
             {/* <Route path="/" element={<Index />} /> */}
             <Route path="/admin" element={<AdminDashboard />} />
@@ -47,6 +53,9 @@ const App = () => (
             <Route path="/contact-us" element={<ContactUs />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </main>
+          <Footer />
+          </div>
         </BrowserRouter>
       </CartProvider>
     </TooltipProvider>
