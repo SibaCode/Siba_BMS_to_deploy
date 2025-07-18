@@ -1,4 +1,4 @@
-import { useState,useEffect} from "react";
+import { useState,useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,13 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-
-import { useCart } from "@/contexts/CartContext";
 import { collection, getDocs } from "firebase/firestore";
-import { db } from "@/firebase";  // Your Firebase config file path
+import { db } from "@/firebase"; // Adjust path based on your structure
 import { Checkbox } from "@/components/ui/checkbox";
 import VariantsSection from "./VariantsSection"
-import CategoriesSection from "./CategoriesSection"
+// import CategoriesSection from "./CategoriesSection"
+
 import {
   addDoc,
   updateDoc,
@@ -34,16 +33,27 @@ import {
   AlertTriangle,
   Package
 } from "lucide-react";
+type OrderItem = {
+  name: string;
+  quantity: number;
+  price: number;
+};
 
+type Order = {
+  id: string;
+  customer: string;
+  phone: string;
+  items: OrderItem[];
+  total: number;
+  paymentMethod: string;
+  paymentStatus: string;
+  deliveryStatus: string;
+  orderDate: string;
+  deliveryDate: string | null;
+};
 const AdminInventory = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-
-
-  const categories = ["all", "Aprons", "Mugs", "Umbrellas"];
-
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [products, setProducts] = useState<any[]>([]);
@@ -52,7 +62,7 @@ const AdminInventory = () => {
     productID: 0,       // string - unique product identifier, e.g. "apron"
     name: "",            // string
     category: "", 
-    categories: [],       // string
+    // categories: [],       // string
     supplier: "",        // string
     productImage:"",
     batchNumber: "",     // string
@@ -100,13 +110,13 @@ const AdminInventory = () => {
     }
   };
 
-
+ 
   const resetForm = () => {
     setFormData({
       productID:0,      // string
       name: "",
       category: "",
-      categories: [],
+      // categories: [],
       supplier: "",
       productImage:"",
       batchNumber: "",
@@ -135,7 +145,7 @@ const AdminInventory = () => {
       productID: product.productID || "",
       name: product.name || "",
       category: product.category || "",
-      categories: [],
+      // categories: [],
       supplier: product.supplier || "",
       productImage: product.productImage || "",
       batchNumber: product.batchNumber || "",
@@ -357,32 +367,17 @@ const AdminInventory = () => {
     setFormData({ ...formData, variants: updatedVariants });
   };
   
-  const lowStockCount = products.filter((p) => p.stock < 5).length;
-  const isProductInStock = (product) => {
-    return product.variants?.some((variant) => variant.stockQuantity > 0);
-  };
+  const lowStockCount = products.filter((p) => {
+    const totalStock = p.variants?.reduce((sum: number, variant: any) => sum + (variant.stockQuantity || 0), 0) || 0;
+    return totalStock < 5;
+  }).length;
 
-  const totalStock = (product) => {
-    return product.variants?.reduce(
-      (sum, variant) => sum + (variant.stockQuantity || 0),
-      0
-    );
-    if (!product.variants || !Array.isArray(product.variants)) {
-      return 0;
-    }
-    return product.variants.reduce(
-      (sum, variant) => sum + (Number(variant.stockQuantity) || 0),
-      0
-    );
-  };
-
-
-
-
+  const categories = ["all", "Aprons", "Mugs", "Umbrellas"];
 
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Header */}
       <div className="border-b bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -395,8 +390,8 @@ const AdminInventory = () => {
               <Package className="h-8 w-8 text-primary" />
               <h1 className="text-2xl font-bold text-foreground">Inventory Management</h1>
             </div>
+
             <div className="flex items-center space-x-4">
-              
 
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
               <DialogTrigger asChild>
@@ -412,6 +407,7 @@ const AdminInventory = () => {
                 </DialogHeader>
 
                 <div className="grid grid-cols-2 gap-4">
+                  {/* Core Product Fields */}
                   <div>
                     <Label htmlFor="productID">Product ID *</Label>
                     <Input
@@ -468,6 +464,7 @@ const AdminInventory = () => {
                 value={formData.productImage}
                 onChange={(e) => handleInputChange("productImage", e.target.value)}
               />
+              {/* Image preview */}
               {formData.productImage && (
                 <img
                   src={formData.productImage}
@@ -509,6 +506,102 @@ const AdminInventory = () => {
                   </div>
                 </div>
 
+                {/* Variant Fields – assuming first variant only */}
+                {/* <div className="mt-6 border-t pt-4 grid grid-cols-2 gap-4">
+                  <h4 className="col-span-2 font-semibold text-lg">Variant</h4>
+
+                  <div>
+                    <Label htmlFor="type">Type</Label>
+                    <Input
+                      id="type"
+                      placeholder="e.g. Basic, Deluxe"
+                      value={formData.variants[0]?.type || ""}
+                      onChange={(e) => handleVariantChange(0, "type", e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="color">Color</Label>
+                    <Input
+                      id="color"
+                      placeholder="Color"
+                      value={formData.variants[0]?.color || ""}
+                      onChange={(e) => handleVariantChange(0, "color", e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="size">Size</Label>
+                    <Input
+                      id="size"
+                      placeholder="Size"
+                      value={formData.variants[0]?.size || ""}
+                      onChange={(e) => handleVariantChange(0, "size", e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="sellingPrice">Selling Price (R)</Label>
+                    <Input
+                      id="sellingPrice"
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={formData.variants[0]?.sellingPrice || ""}
+                      onChange={(e) =>
+                        handleVariantChange(0, "sellingPrice", parseFloat(e.target.value) || 0)
+                      }
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="stockPrice">Stock Price (R)</Label>
+                    <Input
+                      id="stockPrice"
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={formData.variants[0]?.stockPrice || ""}
+                      onChange={(e) =>
+                        handleVariantChange(0, "stockPrice", parseFloat(e.target.value) || 0)
+                      }
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="stockQuantity">Stock Quantity *</Label>
+                    <Input
+                      id="stockQuantity"
+                      type="number"
+                      placeholder="0"
+                      value={formData.variants[0]?.stockQuantity || ""}
+                      onChange={(e) =>
+                        handleVariantChange(0, "stockQuantity", parseInt(e.target.value, 10) || 0)
+                      }
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      placeholder="Variant description"
+                      value={formData.variants[0]?.description || ""}
+                      onChange={(e) => handleVariantChange(0, "description", e.target.value)}
+                      rows={3}
+                    />
+                  </div>
+
+                  <div className="col-span-2">
+                    <Label htmlFor="images">Image URL</Label>
+                    <Input
+                      id="images"
+                      placeholder="https://example.com/image.jpg"
+                      value={formData.variants[0]?.images?.[0] || ""}
+                      onChange={(e) => handleVariantImageChange(0, e.target.value)}
+                    />
+                  </div>
+                </div> */}
 
                 <VariantsSection formData={formData} setFormData={setFormData} />
 
@@ -529,18 +622,19 @@ const AdminInventory = () => {
                 </div>
               </DialogContent>
             </Dialog>
+  
             </div>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-     
+        {/* Stats Bar */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <Card>
             <CardContent className="p-4">
               <div className="text-2xl font-bold">{products.length}</div>
-              <div className="text-sm text-muted-foreground">Total products</div>
+              <div className="text-sm text-muted-foreground">Total Products</div>
             </CardContent>
           </Card>
           <Card>
@@ -553,15 +647,26 @@ const AdminInventory = () => {
             <CardContent className="p-4">
               <div className="text-2xl font-bold">{categories.length - 1}</div>
               <div className="text-sm text-muted-foreground">Categories</div>
+              {/* <CategoriesSection formData={formData} setFormData={setFormData} /> */}
+
             </CardContent>
           </Card>
+
           <Card>
             <CardContent className="p-4">
-              <div className="text-2xl font-bold">R{products.reduce((sum, p) => sum + (p.selling * p.stock), 0).toFixed(2)}</div>
+              <div className="text-2xl font-bold">
+                R{products.reduce((sum, p) => {
+                  const productValue = p.variants?.reduce((variantSum: number, variant: any) => 
+                    variantSum + ((variant.sellingPrice || 0) * (variant.stockQuantity || 0)), 0
+                  ) || 0;
+                  return sum + productValue;
+                }, 0).toFixed(2)}
+              </div>
               <div className="text-sm text-muted-foreground">Total Value</div>
             </CardContent>
           </Card>
         </div>
+
         {/* Filters */}
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <div className="relative flex-1">
@@ -586,74 +691,136 @@ const AdminInventory = () => {
             </SelectContent>
           </Select>
         </div>
-    {/* Products Grid */}
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        
-        {filteredProducts.map((product) => (
-          <Card key={product.productID} className="hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="aspect-square bg-muted rounded-lg mb-3 flex items-center justify-center">
-              {product.productImage ? (
-                <img
-                  src={product.productImage}
-                  alt={product.name}
-                  className="object-cover w-full h-full"
-                />
-              ) : (<Package className="h-12 w-12 text-muted-foreground" /> )}
-              </div>
-              
 
-              
-              <CardTitle className="text-lg">{product.name}</CardTitle>
-              <div className="flex items-center justify-between">
-                <Badge variant="secondary">{product.category}</Badge>
-                <Badge variant="default">
-                {totalStock(product)} in stock
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2 mb-4">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Stock price:</span>
-                  <span className="font-semibold">R {product.variants?.[0]?.stockPrice}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Selling price:</span>
-                  <span className="font-semibold">R {product.variants?.[0]?.sellingPrice}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Batch #:</span>
-                  <span className="font-semibold">{product.batchNumber}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">last restocked:</span>
-                  <span className="font-semibold"> {product.lastRestocked}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Status:</span>
-                  <span className="font-semibold"> {product.status}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Supplier:</span>
-                  <span className="font-semibold"> {product.supplier}</span>
-                </div>
-              </div>
-              <div className="flex space-x-2">
-                <Button variant="outline" size="sm"  onClick={() => openEditModal(product)}className="flex-1">
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit
-                </Button>
-                <Button  onClick={() => deleteProduct(product)}size="sm">
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+        {/* Products Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredProducts.map((product) => {
+            const totalStock = product.variants?.reduce((sum: number, variant: any) => sum + (variant.stockQuantity || 0), 0) || 0;
+            const isLowStock = totalStock < 5;
+            const priceRange = product.variants?.length > 1 
+              ? `R${Math.min(...product.variants.map((v: any) => v.sellingPrice || 0))} - R${Math.max(...product.variants.map((v: any) => v.sellingPrice || 0))}`
+              : `R${product.variants?.[0]?.sellingPrice || 0}`;
+
+            return (
+              <Card key={product.productID} className="hover:shadow-lg transition-shadow">
+                <CardHeader className="pb-3">
+                  <div className="aspect-square bg-muted rounded-lg mb-3 flex items-center justify-center overflow-hidden">
+                    {product.productImage ? (
+                      <img
+                        src={product.productImage}
+                        alt={product.name}
+                        className="object-cover w-full h-full rounded-lg"
+                      />
+                    ) : (
+                      <Package className="h-12 w-12 text-muted-foreground" />
+                    )}
+                  </div>
+
+                  <CardTitle className="text-lg">{product.name}</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <Badge variant="secondary">{product.category}</Badge>
+                    <Badge variant={isLowStock ? "destructive" : "default"}>
+                      {isLowStock && <AlertTriangle className="h-3 w-3 mr-1" />}
+                      {totalStock} total stock
+                    </Badge>
+                  </div>
+                </CardHeader>
                 
-              </div>
+                <CardContent>
+                  <div className="space-y-3 mb-4">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Price Range:</span>
+                      <span className="font-semibold">{priceRange}</span>
+                    </div>
+                    
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Variants:</span>
+                      <span className="font-medium">{product.variants?.length || 0}</span>
+                    </div>
+
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Supplier:</span>
+                      <span className="truncate ml-2">{product.supplier}</span>
+                    </div>
+
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Status:</span>
+                      <Badge variant={product.status === "Active" ? "default" : "secondary"} className="text-xs">
+                        {product.status}
+                      </Badge>
+                    </div>
+
+                    {/* Variants Preview */}
+                    {product.variants && product.variants.length > 0 && (
+                      <div className="mt-3 pt-3 border-t">
+                        <div className="text-xs font-medium text-muted-foreground mb-2">Variant Details:</div>
+                        <div className="space-y-2 max-h-32 overflow-y-auto">
+                          {product.variants.slice(0, 3).map((variant: any, index: number) => (
+                            <div key={index} className="bg-muted/50 p-2 rounded text-xs">
+                              <div className="flex justify-between items-center">
+                                <span className="font-medium">
+                                  {variant.color} {variant.size} {variant.type}
+                                </span>
+                                <Badge variant={variant.stockQuantity < 5 ? "destructive" : "outline"} className="text-xs">
+                                  {variant.stockQuantity}
+                                </Badge>
+                              </div>
+                              <div className="flex justify-between mt-1">
+                                <span>R{variant.sellingPrice}</span>
+                                <span className="text-muted-foreground">Cost: R{variant.stockPrice}</span>
+                              </div>
+                            </div>
+                          ))}
+                          {product.variants.length > 3 && (
+                            <div className="text-center text-xs text-muted-foreground py-1">
+                              +{product.variants.length - 3} more variants
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="flex space-x-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => openEditModal(product)} 
+                      className="flex-1"
+                    >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit
+                    </Button>
+                    <Button 
+                      variant="destructive" 
+                      onClick={() => deleteProduct(product)} 
+                      size="sm"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
+        {filteredProducts.length === 0 && (
+          <Card className="py-12">
+            <CardContent className="text-center">
+              <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No products found</h3>
+              <p className="text-muted-foreground">
+                {searchTerm || categoryFilter !== "all" 
+                  ? "Try adjusting your search or filter criteria"
+                  : "Add your first product to get started"
+                }
+              </p>
             </CardContent>
           </Card>
-        ))}
+        )}
       </div>
-      </div>
+
     </div>
   );
 };

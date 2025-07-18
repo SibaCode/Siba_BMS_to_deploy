@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -12,60 +11,84 @@ import AdminInventory from "./pages/AdminInventory";
 import AdminOrders from "./pages/AdminOrders";
 import AdminCustomers from "./pages/AdminCustomers";
 import AdminInvoice from "./pages/AdminInvoice";
+import AdminBusinessInfoPage from "./pages/AdminBusinessInfoPage";
+import AdminCategoriesPage from "./pages/AdminCategoriesPage";
+import AdminExpensesPage from "./pages/AdminExpensesPage";
 import PublicStore from "./pages/PublicStore";
+import ProductDetailsPage from "./pages/ProductDetailsPage";
 import ShoppingCart from "./pages/ShoppingCart";
 import Checkout from "./pages/Checkout";
 import OrderSuccess from "./pages/OrderSuccess";
-import ProductDetailsPage from "./pages/ProductDetailsPage"; // or wherever you saved the file
-import AboutUs from "./pages/components/AboutUs";
-import ContactUs from "./pages/components/ContactUs";
-import Navbar from "./pages/components/Navbar";
-import Footer from "./pages/components/Footer";
-import BusinessInfo from "./pages/BusinessInfo";
-import { BusinessInfoProvider } from "./pages/components/BusinessInfoContext";
+import { AdminLayout  } from "./pages/AdminLayout";
 
 const queryClient = new QueryClient();
 
 const App = () => (
-  <BusinessInfoProvider>
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <CartProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
-        <div className="min-h-screen flex flex-col">
-
-        <Navbar />
-        <main className="flex-grow">
-
           <Routes>
-            {/* <Route path="/" element={<Index />} /> */}
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/inventory" element={<AdminInventory />} />
-            <Route path="/admin/business" element={<BusinessInfo />} />
-            <Route path="/admin/orders" element={<AdminOrders />} />
-            <Route path="/admin/customers" element={<AdminCustomers />} />
-            <Route path="/admin/invoice/:id" element={<AdminInvoice />} />
+            <Route path="/" element={<Index />} />
+            
+            {/* Admin routes with sidebar layout */}
+            <Route path="/admin" element={
+              <AdminLayout title="Dashboard Overview">
+                <AdminDashboard />
+              </AdminLayout>
+            } />
+            <Route path="/admin/inventory" element={
+              <AdminLayout title="Inventory Management">
+                <AdminInventory />
+              </AdminLayout>
+            } />
+            <Route path="/admin/orders" element={
+              <AdminLayout title="Order Management">
+                <AdminOrders />
+              </AdminLayout>
+            } />
+            <Route path="/admin/customers" element={
+              <AdminLayout title="Customer Management">
+                <AdminCustomers />
+              </AdminLayout>
+            } />
+            <Route path="/admin/invoice/:orderId" element={
+              <AdminLayout title="Invoice Details">
+                <AdminInvoice />
+              </AdminLayout>
+            } />
+            <Route path="/admin/settings/business-info" element={
+              <AdminLayout title="Business Information">
+                <AdminBusinessInfoPage />
+              </AdminLayout>
+            } />
+            <Route path="/admin/settings/categories" element={
+              <AdminLayout title="Category Management">
+                <AdminCategoriesPage />
+              </AdminLayout>
+            } />
+            <Route path="/admin/finance/expenses" element={
+              <AdminLayout title="Expense Management">
+                <AdminExpensesPage />
+              </AdminLayout>
+            } />
+            
+            {/* Public store routes */}
             <Route path="/store" element={<PublicStore />} />
-            <Route path="/" element={<PublicStore />} />
+            <Route path="/store/product/:productId" element={<ProductDetailsPage />} />
             <Route path="/store/cart" element={<ShoppingCart />} />
             <Route path="/store/checkout" element={<Checkout />} />
             <Route path="/store/success" element={<OrderSuccess />} />
-            <Route path="/products/:id" element={<ProductDetailsPage />} />
-            <Route path="/about-us" element={<AboutUs />} />
-            <Route path="/contact-us" element={<ContactUs />} />
+            
+            {/* Catch-all route */}
             <Route path="*" element={<NotFound />} />
           </Routes>
-          </main>
-          <Footer />
-          </div>
         </BrowserRouter>
       </CartProvider>
     </TooltipProvider>
   </QueryClientProvider>
-  </BusinessInfoProvider>
-
 );
 
 export default App;

@@ -1,301 +1,246 @@
-import React, { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "@/firebase";
-import {
-  Store,
-  Package,
-  ShoppingCart,
-  Users,
-  DollarSign,
-  TrendingUp,
-  AlertTriangle,
-} from "lucide-react"; // or your icon lib
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/components/ui/card"; 
-import { Badge } from "@/components/ui/badge";
+import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-
-// or wherever your UI components live
-import { Link } from "react-router-dom"; // or your router
-import BusinessInfo from "./BusinessInfo"; // adjust path accordingly
-
-// ... inside your dashboard return JSX, add somewhere:
-
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { collection, getDocs } from "firebase/firestore";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { db } from "@/firebase";
+import { 
+  Package, 
+  ShoppingCart, 
+  Users, 
+  DollarSign, 
+  TrendingUp, 
+  AlertTriangle,
+  Plus,
+  Eye
+} from "lucide-react";
 
 const AdminDashboard = () => {
-  const [products, setProducts] = useState([]);
-  const [orders, setOrders] = useState([]);
-  const [customers, setCustomers] = useState([]);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [totalCustomers, setTotalCustomers] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [businessInfo, setBusinessInfo] = useState([]);
 
   useEffect(() => {
-    const fetchAllData = async () => {
+    const fetchStats = async () => {
       try {
-        const productsCol = collection(db, "products");
-        const ordersCol = collection(db, "orders");
-        const customersCol = collection(db, "customers");
-        const businessInfoCol = collection(db, "businessInfo");
-        
-        
-        const [productsSnap, ordersSnap, customersSnap, businessInfoSnap] = await Promise.all([
-          getDocs(productsCol),
-          getDocs(ordersCol),
-          getDocs(customersCol),
-          getDocs(businessInfoCol),
+        const productsSnapshot = await getDocs(collection(db, "products"));
+        const ordersSnapshot = await getDocs(collection(db, "orders"));
+        const customersSnapshot = await getDocs(collection(db, "customers"));
 
-        ]);
-        setBusinessInfo(businessInfoSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        setProducts(productsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        setOrders(ordersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        setCustomers(customersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      } catch (error) {
-        console.error("Error fetching collections:", error);
+        setTotalProducts(productsSnapshot.size);
+        setTotalOrders(ordersSnapshot.size);
+        setTotalCustomers(customersSnapshot.size);
+      } catch (err) {
+        console.error("Error fetching stats", err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAllData();
+    fetchStats();
   }, []);
 
-  if (loading) return <div>Loading all data...</div>;
-
-  // Calculate stats dynamically
-  const totalProducts = products.length;
-  const allBiz = businessInfo.length;
-
-  // Assuming each product has a `stock` property (number)
-  const lowStockItems = products.filter(p => p.stock !== undefined && p.stock <= 5).length;
-
-  const totalOrders = orders.length;
-  // Assuming orders have a `status` field
-  const pendingOrders = orders.filter(order => order.status === "pending").length;
-
-  const totalCustomers = customers.length;
-
-  // Assuming orders have an `amount` field (number) and a `date` field (timestamp or ISO string)
-  const currentMonth = new Date().getMonth();
-  const currentYear = new Date().getFullYear();
-  const monthlyRevenue = orders
-    .filter(order => {
-      const orderDate = new Date(order.date);
-      return orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear;
-    })
-    .reduce((acc, order) => acc + (order.amount || 0), 0);
-
-  // Top products - naive: top by sales field if exists, else empty array
-  // Assuming products have `sales` and `revenue` fields
-  const topProducts = [...products]
-    .filter(p => p.sales && p.revenue)
-    .sort((a, b) => b.sales - a.sales)
-    .slice(0, 3);
-
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <Store className="h-8 w-8 text-primary" />
-              <h1 className="text-2xl font-bold text-foreground">Admin Dashboard</h1>
+    <div className="space-y-6">
+      {/* Quick Actions */}
+      <div className="flex gap-4">
+        <Button asChild>
+          <Link to="/admin/inventory" className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Add Product
+          </Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link to="/admin/orders" className="flex items-center gap-2">
+            <Eye className="h-4 w-4" />
+            View Orders
+          </Link>
+        </Button>
+        <Button asChild variant="outline">
+          <Link to="/store">
+            View Store
+          </Link>
+        </Button>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Total Products</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{loading ? "..." : totalProducts}</div>
+            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+              <span>Active in inventory</span>
             </div>
-            <div className="flex items-center space-x-4">
-              <Button asChild variant="outline">
-                <Link to="/store">View Store</Link>
-              </Button>
-              <Button asChild>
-                <Link to="/admin/inventory">Manage Inventory</Link>
-              </Button>
-              <Button asChild>
-                <Link to="/admin/business">Manage Business</Link>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{loading ? "..." : totalOrders}</div>
+            <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+              <span>All time orders</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{loading ? "..." : totalCustomers}</div>
+            <p className="text-sm text-muted-foreground">Registered customers</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">R12,340</div>
+            <div className="flex items-center space-x-1 text-sm text-green-600">
+              <TrendingUp className="h-3 w-3" />
+              <span>+12% from last month</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent Activity & Alerts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <AlertTriangle className="h-5 w-5 text-orange-500" />
+              <span>Low Stock Alerts</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm">Premium Aprons</span>
+                <Badge variant="destructive">3 left</Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm">Travel Umbrellas</span>
+                <Badge variant="destructive">2 left</Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm">Limited Edition Mugs</span>
+                <Badge variant="destructive">1 left</Badge>
+              </div>
+              <Button asChild variant="outline" size="sm" className="w-full mt-3">
+                <Link to="/admin/inventory">
+                  View All Inventory
+                </Link>
               </Button>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <TrendingUp className="h-5 w-5 text-green-500" />
+              <span>Recent Orders</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <div>
+                  <div className="text-sm font-medium">Order #1234</div>
+                  <div className="text-xs text-muted-foreground">2 hours ago</div>
+                </div>
+                <div className="text-sm font-semibold">R450</div>
+              </div>
+              <div className="flex justify-between items-center">
+                <div>
+                  <div className="text-sm font-medium">Order #1235</div>
+                  <div className="text-xs text-muted-foreground">5 hours ago</div>
+                </div>
+                <div className="text-sm font-semibold">R230</div>
+              </div>
+              <div className="flex justify-between items-center">
+                <div>
+                  <div className="text-sm font-medium">Order #1236</div>
+                  <div className="text-xs text-muted-foreground">1 day ago</div>
+                </div>
+                <div className="text-sm font-semibold">R180</div>
+              </div>
+              <Button asChild variant="outline" size="sm" className="w-full mt-3">
+                <Link to="/admin/orders">
+                  View All Orders
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Quick Overview Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Products</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Product Name</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Stock</TableHead>
+                <TableHead>Price</TableHead>
+                <TableHead>Status</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow>
+                <TableCell>Custom T-Shirt</TableCell>
+                <TableCell>Apparel</TableCell>
+                <TableCell>45</TableCell>
+                <TableCell>R120</TableCell>
+                <TableCell><Badge variant="secondary">Active</Badge></TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Coffee Mug</TableCell>
+                <TableCell>Drinkware</TableCell>
+                <TableCell>23</TableCell>
+                <TableCell>R65</TableCell>
+                <TableCell><Badge variant="secondary">Active</Badge></TableCell>
+              </TableRow>
+              <TableRow>
+                <TableCell>Premium Apron</TableCell>
+                <TableCell>Kitchen</TableCell>
+                <TableCell className="text-orange-600 font-medium">3</TableCell>
+                <TableCell>R95</TableCell>
+                <TableCell><Badge variant="outline">Low Stock</Badge></TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+          <div className="mt-4">
+            <Button asChild variant="outline">
+              <Link to="/admin/inventory">
+                View Full Inventory
+              </Link>
+            </Button>
           </div>
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalProducts}</div>
-              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                <span>Low stock:</span>
-                <Badge variant={lowStockItems > 5 ? "destructive" : "secondary"}>
-                  {lowStockItems}
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-              <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalOrders}</div>
-              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                <span>Pending:</span>
-                <Badge variant="secondary">{pendingOrders}</Badge>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">All biz</CardTitle>
-              <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{allBiz}</div>
-             
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalCustomers}</div>
-              <p className="text-sm text-muted-foreground">+5 this month</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">R{monthlyRevenue.toLocaleString()}</div>
-              <div className="flex items-center space-x-1 text-sm text-success">
-                <TrendingUp className="h-3 w-3" />
-                <span>+12% from last month</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Package className="h-5 w-5 text-primary" />
-                <span>Inventory Management</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                Add, edit, and manage your product inventory
-              </p>
-              <Button asChild className="w-full">
-                <Link to="/admin/inventory">Manage Inventory</Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <ShoppingCart className="h-5 w-5 text-primary" />
-                <span>Order Management</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                Track and manage customer orders
-              </p>
-              <Button asChild className="w-full">
-                <Link to="/admin/orders">View Orders</Link>
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Users className="h-5 w-5 text-primary" />
-                <span>Customer Management</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">
-                View and manage customer information
-              </p>
-              <Button asChild className="w-full">
-                <Link to="/admin/customers">View Customers</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Recent Activity & Top Products */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <AlertTriangle className="h-5 w-5 text-warning" />
-                <span>Low Stock Alert</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {/* List actual low stock products */}
-                {products
-                  .filter(p => p.stock !== undefined && p.stock <= 5)
-                  .map(product => (
-                    <div
-                      key={product.id}
-                      className="flex justify-between items-center"
-                    >
-                      <span className="text-sm">{product.name || "Unnamed"}</span>
-                      <Badge variant="destructive">{product.stock} left</Badge>
-                    </div>
-                  ))}
-                {lowStockItems === 0 && <p className="text-sm text-muted-foreground">No low stock items!</p>}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <TrendingUp className="h-5 w-5 text-success" />
-                <span>Top Products</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {topProducts.length > 0 ? (
-                topProducts.map(product => (
-                  <div
-                    key={product.id}
-                    className="flex justify-between items-center mb-2"
-                  >
-                    <span>{product.name}</span>
-                    <span className="font-semibold">Sold: {product.sales}</span>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-muted-foreground">No sales data available.</p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
