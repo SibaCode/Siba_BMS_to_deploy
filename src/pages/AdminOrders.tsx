@@ -8,6 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { db } from "@/firebase"; // your Firebase config
 import { collection, getDocs } from "firebase/firestore";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
 
 import { 
   ArrowLeft, 
@@ -22,6 +30,7 @@ import {
 const AdminOrders = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [editingOrder, setEditingOrder] = useState<any | null>(null);
 
   // Mock data - in real app this would come from backend
   const [orders, setOrders] = useState<any[]>([]);
@@ -46,8 +55,50 @@ const AdminOrders = () => {
   
     fetchOrders();
   }, []);
+  const handleEdit = (order: any) => {
+    setEditingOrder(order);
+    console.log(order)
+  };
+  
+
+  const handleSaveChanges = async () => {
+    if (!editingOrder?.id) return;
+  
+    try {
+      const orderRef = doc(db, "orders", editingOrder.id);
+  
+      const docSnap = await getDoc(orderRef);
+      if (docSnap.exists()) {
+        // Document exists, update it
+        await updateDoc(orderRef, {
+          paymentMethod: editingOrder.paymentMethod,
+          paymentStatus: editingOrder.paymentStatus,
+          deliveryStatus: editingOrder.deliveryStatus,
+        });
+      } else {
+        // Document does not exist, create it or handle error
+        await setDoc(orderRef, {
+          paymentMethod: editingOrder.paymentMethod,
+          paymentStatus: editingOrder.paymentStatus,
+          deliveryStatus: editingOrder.deliveryStatus,
+          // add other required fields here if needed
+        });
+      }
+  
+      setOrders((prev) =>
+        prev.map((order) =>
+          order.id === editingOrder.id ? editingOrder : order
+        )
+      );
+  
+      setEditingOrder(null);
+    } catch (error) {
+      console.error("Failed to update order:", error);
+    }
+  };
   
  
+  
   const filteredOrders = orders.filter(order => {
     // Compose a string for customer name
     const customerName = `${order.customer.firstName} ${order.customer.lastName}`.toLowerCase();
@@ -249,9 +300,9 @@ const AdminOrders = () => {
                     </TableCell> */}
                     <TableCell>
                       <div className="flex space-x-2">
-                        <Button variant="outline" size="sm">
-                          <Eye className="h-4 w-4" />
-                        </Button>
+                      <Button variant="outline" size="sm" onClick={() => handleEdit(order)}>
+                        Edit
+                      </Button>
                         <Button variant="outline" size="sm" asChild>
                           <Link to={`/admin/invoice/${order.id}`}>
                             <FileText className="h-4 w-4" />
@@ -263,6 +314,64 @@ const AdminOrders = () => {
                 ))}
               </TableBody>
             </Table>
+            <Dialog open={!!editingOrder} onOpenChange={(open) => !open && setEditingOrder(null)}>
+              <DialogContent className="sm:max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Edit Order #{editingOrder?.orderId}</DialogTitle>
+                </DialogHeader>
+                {editingOrder && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-4">
+                    <Input
+                      value={editingOrder.paymentMethod}
+                      onChange={(e) =>
+                        setEditingOrder({ ...editingOrder, paymentMethod: e.target.value })
+                      }
+                      placeholder="Payment Method"
+                    />
+                   <Select
+                    value={editingOrder.paymentStatus}
+                    onValueChange={(val) =>
+                      setEditingOrder({ ...editingOrder, paymentStatus: val })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Payment Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Paid">Paid</SelectItem>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                      <SelectItem value="Failed">Failed</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select
+                    value={editingOrder.deliveryStatus}
+                    onValueChange={(val) =>
+                      setEditingOrder({ ...editingOrder, deliveryStatus: val })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Delivery Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Delivered">Delivered</SelectItem>
+                      <SelectItem value="Not Delivered">Not Delivered</SelectItem>
+                      <SelectItem value="Processing">Processing</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  </div>
+                )}
+                <DialogFooter className="flex gap-2">
+                  <Button onClick={handleSaveChanges}>Save Changes</Button>
+                  <Button variant="outline" onClick={() => setEditingOrder(null)}>
+                    Cancel
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+
           </CardContent>
         </Card>
 
