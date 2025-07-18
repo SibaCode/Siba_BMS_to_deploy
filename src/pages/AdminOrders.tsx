@@ -96,6 +96,47 @@ const AdminOrders = () => {
       console.error("Failed to update order:", error);
     }
   };
+  const handleExportCSV = () => {
+    if (orders.length === 0) return;
+  
+    const headers = [
+      "Order ID",
+      "Customer",
+      "Phone",
+      "Items",
+      "Total",
+      "Payment Method",
+      "Payment Status",
+      "Delivery Status"
+    ];
+  
+    const rows = orders.map(order => {
+      const itemsString = order.items.map((item: any) => `${item.name} x${item.quantity}`).join(", ");
+      return [
+        order.orderId,
+        `${order.customer.firstName} ${order.customer.lastName}`,
+        order.customer.phone,
+        itemsString,
+        `R${order.total.toFixed(2)}`,
+        order.paymentMethod,
+        order.paymentStatus,
+        order.deliveryStatus
+      ];
+    });
+  
+    const csvContent = [headers, ...rows]
+      .map(e => e.map(field => `"${String(field).replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+  
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "orders.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
   
  
   
@@ -169,7 +210,7 @@ const AdminOrders = () => {
               <h1 className="text-2xl font-bold text-foreground">Order Management</h1>
             </div>
             <div className="flex items-center space-x-4">
-              <Button variant="outline">
+              <Button variant="outline"  onClick={handleExportCSV}>
                 <Download className="h-4 w-4 mr-2" />
                 Export CSV
               </Button>
@@ -181,6 +222,15 @@ const AdminOrders = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Bar */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+       
+       
+       
+       
+       
+       
+       
+       
+       
           <Card>
             <CardContent className="p-4">
               <div className="text-2xl font-bold">{orders.length}</div>

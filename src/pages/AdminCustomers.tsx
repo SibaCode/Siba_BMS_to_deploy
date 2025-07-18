@@ -15,7 +15,8 @@ import {
   Users, 
   Eye,
   Phone,
-  Mail
+  Mail,
+  Download,
 } from "lucide-react";
 
 const AdminCustomers = () => {
@@ -59,7 +60,39 @@ const AdminCustomers = () => {
     );
   });
   
-
+  const handleExportCSV = () => {
+    if (customers.length === 0) return;
+  
+    const headers = [
+      "Customer ID",
+      "First Name",
+      "Email",
+      "Phone",
+      "Join Date"
+    ];
+  
+    const rows = customers.map(customer => [
+      customer.id,
+      customer.firstName,
+      customer.email,
+      customer.phone,
+      customer.joinDate
+    ]);
+  
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(field => `"${String(field || "").replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+  
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "customers.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  
   const getStatusBadgeVariant = (status: string) => {
     switch (status.toLowerCase()) {
       case "vip":
@@ -93,12 +126,19 @@ const AdminCustomers = () => {
               <Users className="h-8 w-8 text-primary" />
               <h1 className="text-2xl font-bold text-foreground">Customer Management</h1>
             </div>
+            <div className="flex items-center space-x-4">
+              <Button variant="outline"  onClick={handleExportCSV}>
+                <Download className="h-4 w-4 mr-2" />
+                Export CSV
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Bar */}
+        
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <Card>
             <CardContent className="p-4">
@@ -154,7 +194,7 @@ const AdminCustomers = () => {
                   <TableHead>Total Spent</TableHead>
                   <TableHead>Last Order</TableHead> */}
                   {/* <TableHead>Status</TableHead> */}
-                  <TableHead>Actions</TableHead>
+                  {/* <TableHead>Actions</TableHead> */}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -206,11 +246,11 @@ const AdminCustomers = () => {
                     </Badge>
 
                     </TableCell> */}
-                    <TableCell>
+                    {/* <TableCell>
                       <Button variant="outline" size="sm">
                         <Eye className="h-4 w-4" />
                       </Button>
-                    </TableCell> 
+                    </TableCell>  */}
                   </TableRow>
                 ))}
               </TableBody>

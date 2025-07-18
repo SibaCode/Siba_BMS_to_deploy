@@ -226,7 +226,7 @@ const { businessInfo } = useBusinessInfo();
             <h3 className="font-semibold mb-2">Order status</h3>
             <div className="bg-muted p-4 rounded text-sm space-y-1">
               <p><strong>Payment Method:</strong> {invoice.paymentMethod || "N/A"}</p>
-              <p><strong>Delivery Status:</strong> {businessInfo.deliveryStatus || "N/A"}</p>
+              <p><strong>Delivery Status:</strong> {invoice.deliveryStatus || "N/A"}</p>
             </div>
           </div>
             <div className="mb-6">
